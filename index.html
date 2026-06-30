@@ -253,7 +253,7 @@
   .chart-block { margin-bottom: 26px; }
   .chart-block:last-child { margin-bottom: 0; }
 
-  canvas { max-height: 220px; }
+  canvas { width:100%; height:260px; }
 
   .empty-note {
     color: var(--muted);
@@ -350,19 +350,36 @@
     return await res.json();
   }
   
-  async function saveToSheets(data) {
-    try {
-      await fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
-      });
-    } catch(e) {
-      console.error("Sync error:", e);
+  async function saveToSheets() {
+    const history = [];
+    const max = Math.max(hoursHistory.length, greHistory.length);
+
+    for (let i = 0; i < max; i++) {
+      const h = hoursHistory[i];
+      const g = greHistory[i];
+      history.push([
+        h ? new Date(h.t).toISOString() : (g ? new Date(g.t).toISOString() : ""),
+        h ? h.v : "",
+        g ? g.q : "",
+        g ? g.v : ""
+      ]);
     }
+
+    const payload = {
+      hours,
+      hoursTarget,
+      qTarget,
+      vTarget,
+      history
+    };
+
+    const res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify(payload)
+    });
+
+    console.log(await res.text());
   }
   
   const STORE_HOURS = 'tracker_hours_value';
@@ -573,7 +590,7 @@
     hoursProgressText.textContent = `${hours} / ${hoursTarget} hrs`;
   }
 
-  function adjustHours(delta) {
+  async function adjustHours(delta) {
     hours = Math.max(0, hours + delta);
     save(STORE_HOURS, hours);
     hoursHistory.push({ t: Date.now(), v: hours });
@@ -583,7 +600,7 @@
     renderHoursProgress();
     renderHoursChart();
     
-    saveToSheets({ type: 'hours', value: hours, timestamp: new Date().toISOString() });
+    await saveToSheets();
   }
 
   document.getElementById('plusBtn').addEventListener('click', () => adjustHours(1));
@@ -597,7 +614,7 @@
     save(STORE_HOURS_TARGET, hoursTarget);
     renderHoursProgress();
     renderHoursChart();
-    saveToSheets({ type: 'hoursTarget', value: hoursTarget });
+    await saveToSheets();
   });
 
   // ---------- GRE Interfacing ----------
@@ -618,7 +635,7 @@
     qTarget = val;
     save(STORE_Q_TARGET, qTarget);
     renderGreChart();
-    saveToSheets({ type: 'qTarget', value: qTarget });
+    await saveToSheets();
   });
 
   vTargetInput.addEventListener('change', () => {
@@ -627,10 +644,10 @@
     vTarget = val;
     save(STORE_V_TARGET, vTarget);
     renderGreChart();
-    saveToSheets({ type: 'vTarget', value: vTarget });
+    await saveToSheets();
   });
 
-  function logGre() {
+  async function logGre() {
     const q = Number(qInput.value);
     const v = Number(vInput.value);
     greError.textContent = '';
@@ -650,7 +667,7 @@
     save(STORE_LAST_V, v);
     
     renderGreChart();
-    saveToSheets({ type: 'gre', quant: q, verbal: v, timestamp: new Date().toISOString() });
+    await saveToSheets();
   }
 
   document.getElementById('logGreBtn').addEventListener('click', logGre);
@@ -690,6 +707,7 @@
     try {
       // Stage 2: Attempt background fetch over network
       const data = await loadFromSheets();
+      console.log(data);
       if (!data) return;
 
       if (data.hours !== undefined && data.hours !== null && data.hours !== "") {
@@ -748,10 +766,13 @@
         // Update working data profiles only if arrays contain entries
         if (structuralHours.length > 0) {
           hoursHistory = structuralHours;
+          hours = hoursHistory.at(-1).v;
           save(STORE_HOURS_HISTORY, hoursHistory);
         }
         if (structuralGre.length > 0) {
           greHistory = structuralGre;
+          qInput.value = greHistory.at(-1).q;
+          vInput.value = greHistory.at(-1).v;
           save(STORE_GRE_HISTORY, greHistory);
           
           const finalScore = greHistory[greHistory.length - 1];
