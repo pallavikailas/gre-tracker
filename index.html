@@ -346,6 +346,22 @@
 
 <script>
   // ---------- storage ----------
+  const API_URL = "https://script.google.com/macros/s/AKfycbwD1MzUId97tads32NHhGnw4fABL-gmdYs3yCfpgxcg7GCD6mkl4NrfoJx_uXwtqnM/exec";
+  async function loadFromSheets() {
+    const res = await fetch(API_URL);
+    return await res.json();
+  }
+  
+  async function saveToSheets(data) {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+  }
+  
   const STORE_HOURS = 'tracker_hours_value';
   const STORE_HOURS_HISTORY = 'tracker_hours_history';
   const STORE_GRE_HISTORY = 'tracker_gre_history';
@@ -382,7 +398,7 @@
   // ---------- charts ----------
   let hoursChart, greChart;
 
-  function renderHoursChart() {
+  function HoursChart() {
     const empty = document.getElementById('hoursEmpty');
     const canvas = document.getElementById('hoursChart');
     if (hoursHistory.length === 0) {
@@ -436,7 +452,7 @@
     }
   }
 
-  function renderGreChart() {
+  function GreChart() {
     const empty = document.getElementById('greEmpty');
     const canvas = document.getElementById('greChart');
     if (greHistory.length === 0) {
@@ -542,11 +558,11 @@
   const hoursProgressText = document.getElementById('hoursProgressText');
   const hoursTargetInput = document.getElementById('hoursTargetInput');
 
-  function renderHoursValue() {
+  function HoursValue() {
     hoursValueEl.textContent = hours;
   }
 
-  function renderHoursProgress() {
+  function HoursProgress() {
     const pct = hoursTarget > 0 ? Math.min(100, (hours / hoursTarget) * 100) : 0;
     hoursProgressFill.style.width = pct + '%';
     hoursProgressText.textContent = `${hours} / ${hoursTarget} hrs`;
@@ -557,9 +573,9 @@
     save(STORE_HOURS, hours);
     hoursHistory.push({ t: Date.now(), v: hours });
     save(STORE_HOURS_HISTORY, hoursHistory);
-    renderHoursValue();
-    renderHoursProgress();
-    renderHoursChart();
+    HoursValue();
+    HoursProgress();
+    HoursChart();
   }
 
   document.getElementById('plusBtn').addEventListener('click', () => adjustHours(1));
@@ -651,10 +667,49 @@
   });
 
   // ---------- init ----------
-  renderHoursValue();
-  renderHoursProgress();
-  renderHoursChart();
-  renderGreChart();
+  (async function () {
+    try {
+      const data = await loadFromSheets();
+      if (data.hours !== undefined)
+        hours = Number(data.hours);
+      
+      if (data.hoursTarget !== undefined)
+        hoursTarget = Number(data.hoursTarget);
+      
+      if (data.qTarget !== undefined)
+        qTarget = Number(data.qTarget);
+      
+      if (data.vTarget !== undefined)
+        vTarget = Number(data.vTarget);
+      
+      hoursHistory = [];
+      greHistory = [];
+      
+      if (Array.isArray(data.history)) {
+        data.history.forEach(r => {
+          const t = new Date(r[0]).getTime();
+          if (r[1] !== "")
+            hoursHistory.push({
+              t,
+              v: Number(r[1])
+            });
+          
+          if (r[2] !== "" || r[3] !== "")
+            greHistory.push({
+              t,
+              q: Number(r[2]),
+              v: Number(r[3])
+            });
+        });
+      }
+    } catch (e) {
+      console.log("Using localStorage");
+    }
+    renderHoursValue();
+    renderHoursProgress();
+    renderHoursChart();
+    renderGreChart();
+  })();
 </script>
 
 </body>
