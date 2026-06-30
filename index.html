@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study & GRE Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #FAF8F3;
+    --panel: #FFFFFF;
+    --ink: #1F2933;
+    --muted: #6B7280;
+    --line: #E5E1D6;
+    --accent-hours: #B8860B;
+    --accent-q: #2A6F77;
+    --accent-v: #B5495B;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+  }
+
+  header {
+    margin-bottom: 28px;
+  }
+
+  header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+
+  .card h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+
+  /* Hours counter */
+  .counter-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 6px;
+  }
+
+  .counter-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent-hours);
+    background: #fff;
+    color: var(--accent-hours);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.08s ease, background 0.15s ease;
+  }
+
+  .counter-btn:hover { background: #FBF3DF; }
+  .counter-btn:active { transform: scale(0.93); }
+
+  .counter-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 2.6rem;
+    min-width: 110px;
+    text-align: center;
+  }
+
+  .counter-label {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-bottom: 14px;
+  }
+
+  .progress-track {
+    height: 7px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-hours);
+    border-radius: 4px;
+    transition: width 0.2s ease;
+  }
+
+  .target-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  .target-edit {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .target-edit input,
+  .target-inline input {
+    width: 46px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    text-align: center;
+    color: var(--ink);
+    background: #fff;
+  }
+
+  .target-inline {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.74rem;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* GRE form */
+  .field-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .field {
+    flex: 1;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .field input {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1.5px solid var(--line);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem;
+    color: var(--ink);
+    background: #fff;
+  }
+
+  .field input:focus {
+    outline: none;
+    border-color: var(--accent-q);
+  }
+
+  .log-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--ink);
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  .log-btn:hover { opacity: 0.9; }
+
+  .error {
+    color: var(--accent-v);
+    font-size: 0.8rem;
+    margin-top: 8px;
+    min-height: 1em;
+  }
+
+  .legend-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+
+  .legend-row {
+    display: flex;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Charts */
+  .chart-card {
+    grid-column: 1 / -1;
+    margin-top: 18px;
+  }
+
+  .chart-block { margin-bottom: 26px; }
+  .chart-block:last-child { margin-bottom: 0; }
+
+  canvas { max-height: 220px; }
+
+  .empty-note {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  footer {
+    margin-top: 28px;
+    text-align: center;
+  }
+
+  .reset-link {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.78rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Study &amp; GRE Tracker</h1>
+    <p>Tap +/- to log study hours · log GRE Quant and Verbal scores as you go. Everything saves to this browser automatically.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Hours logged</h2>
+      <div class="counter-row">
+        <button class="counter-btn" id="minusBtn" aria-label="Subtract one hour">&minus;</button>
+        <div class="counter-value" id="hoursValue">0</div>
+        <button class="counter-btn" id="plusBtn" aria-label="Add one hour">&plus;</button>
+      </div>
+      <div class="counter-label">Total hours · each tap adds a point to the chart below</div>
+      <div class="progress-track"><div class="progress-fill" id="hoursProgressFill"></div></div>
+      <div class="target-row">
+        <span id="hoursProgressText">0 / 120 hrs</span>
+        <span class="target-edit">Target <input type="number" id="hoursTargetInput" min="1" step="1" value="120"> hrs</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Log a GRE score</h2>
+      <div class="field-row">
+        <div class="field">
+          <label for="qInput">Quant (130&ndash;170)</label>
+          <input type="number" id="qInput" min="130" max="170" step="1" placeholder="e.g. 162">
+          <div class="target-inline">Target <input type="number" id="qTargetInput" min="130" max="170" step="1" value="170"></div>
+        </div>
+        <div class="field">
+          <label for="vInput">Verbal (130&ndash;170)</label>
+          <input type="number" id="vInput" min="130" max="170" step="1" placeholder="e.g. 155">
+          <div class="target-inline">Target <input type="number" id="vTargetInput" min="130" max="170" step="1" value="165"></div>
+        </div>
+      </div>
+      <button class="log-btn" id="logGreBtn">Log score</button>
+      <div class="error" id="greError"></div>
+      <div class="legend-row">
+        <span><span class="legend-dot" style="background:var(--accent-q)"></span>Quant</span>
+        <span><span class="legend-dot" style="background:var(--accent-v)"></span>Verbal</span>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-block">
+        <h2>Hours over time</h2>
+        <div id="hoursEmpty" class="empty-note">No hours logged yet &mdash; tap + above to start.</div>
+        <canvas id="hoursChart"></canvas>
+      </div>
+      <div class="chart-block">
+        <h2>GRE scores over time</h2>
+        <div id="greEmpty" class="empty-note">No scores logged yet.</div>
+        <canvas id="greChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <button class="reset-link" id="resetBtn">Clear all saved data</button>
+  </footer>
+</div>
+
+<script>
+  // ---------- storage ----------
+  const STORE_HOURS = 'tracker_hours_value';
+  const STORE_HOURS_HISTORY = 'tracker_hours_history';
+  const STORE_GRE_HISTORY = 'tracker_gre_history';
+  const STORE_LAST_Q = 'tracker_last_q';
+  const STORE_LAST_V = 'tracker_last_v';
+  const STORE_HOURS_TARGET = 'tracker_hours_target';
+  const STORE_Q_TARGET = 'tracker_q_target';
+  const STORE_V_TARGET = 'tracker_v_target';
+
+  const load = (key, fallback) => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw === null ? fallback : JSON.parse(raw);
+    } catch (e) {
+      return fallback;
+    }
+  };
+  const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+
+  let hours = load(STORE_HOURS, 0);
+  let hoursHistory = load(STORE_HOURS_HISTORY, []); // [{t, v}]
+  let greHistory = load(STORE_GRE_HISTORY, []);     // [{t, q, v}]
+  let hoursTarget = load(STORE_HOURS_TARGET, 120);
+  let qTarget = load(STORE_Q_TARGET, 170);
+  let vTarget = load(STORE_V_TARGET, 165);
+
+  // ---------- helpers ----------
+  const fmtLabel = (ts) => {
+    const d = new Date(ts);
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+
+  // ---------- charts ----------
+  let hoursChart, greChart;
+
+  function renderHoursChart() {
+    const empty = document.getElementById('hoursEmpty');
+    const canvas = document.getElementById('hoursChart');
+    if (hoursHistory.length === 0) {
+      empty.style.display = 'block';
+      canvas.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    canvas.style.display = 'block';
+
+    const labels = hoursHistory.map(e => fmtLabel(e.t));
+    const data = hoursHistory.map(e => e.v);
+    const targetData = labels.map(() => hoursTarget);
+
+    if (!hoursChart) {
+      hoursChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Hours',
+              data,
+              borderColor: '#B8860B',
+              backgroundColor: 'rgba(184,134,11,0.08)',
+              tension: 0.25,
+              fill: true,
+              pointRadius: 3,
+              pointBackgroundColor: '#B8860B'
+            },
+            {
+              label: 'Target',
+              data: targetData,
+              borderColor: '#C9A227',
+              borderDash: [6, 4],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false,
+              tension: 0
+            }
+          ]
+        },
+        options: chartOptions(false, 0, undefined, hoursTarget, false)
+      });
+    } else {
+      hoursChart.data.labels = labels;
+      hoursChart.data.datasets[0].data = data;
+      hoursChart.data.datasets[1].data = targetData;
+      hoursChart.options.scales.y.suggestedMax = hoursTarget;
+      hoursChart.update();
+    }
+  }
+
+  function renderGreChart() {
+    const empty = document.getElementById('greEmpty');
+    const canvas = document.getElementById('greChart');
+    if (greHistory.length === 0) {
+      empty.style.display = 'block';
+      canvas.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    canvas.style.display = 'block';
+
+    const labels = greHistory.map(e => fmtLabel(e.t));
+    const qData = greHistory.map(e => e.q);
+    const vData = greHistory.map(e => e.v);
+    const qTargetData = labels.map(() => qTarget);
+    const vTargetData = labels.map(() => vTarget);
+
+    if (!greChart) {
+      greChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Quant',
+              data: qData,
+              borderColor: '#2A6F77',
+              backgroundColor: 'rgba(42,111,119,0.08)',
+              tension: 0.25,
+              pointRadius: 3,
+              pointBackgroundColor: '#2A6F77'
+            },
+            {
+              label: 'Verbal',
+              data: vData,
+              borderColor: '#B5495B',
+              backgroundColor: 'rgba(181,73,91,0.08)',
+              tension: 0.25,
+              pointRadius: 3,
+              pointBackgroundColor: '#B5495B'
+            },
+            {
+              label: 'Quant target',
+              data: qTargetData,
+              borderColor: '#2A6F77',
+              borderDash: [6, 4],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false,
+              tension: 0
+            },
+            {
+              label: 'Verbal target',
+              data: vTargetData,
+              borderColor: '#B5495B',
+              borderDash: [6, 4],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false,
+              tension: 0
+            }
+          ]
+        },
+        options: chartOptions(true, 130, 170, undefined, true)
+      });
+    } else {
+      greChart.data.labels = labels;
+      greChart.data.datasets[0].data = qData;
+      greChart.data.datasets[1].data = vData;
+      greChart.data.datasets[2].data = qTargetData;
+      greChart.data.datasets[3].data = vTargetData;
+      greChart.update();
+    }
+  }
+
+  function chartOptions(showLegend, min, max, suggestedMax, filterTargets) {
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: showLegend,
+          labels: {
+            boxWidth: 10,
+            font: { size: 11 },
+            filter: filterTargets ? (item) => !/target/i.test(item.text) : undefined
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#6B7280' } },
+        y: {
+          min: min, max: max, suggestedMax: suggestedMax,
+          grid: { color: '#EFEBE0' },
+          ticks: { font: { size: 10 }, color: '#6B7280' }
+        }
+      }
+    };
+  }
+
+  // ---------- hours UI ----------
+  const hoursValueEl = document.getElementById('hoursValue');
+  const hoursProgressFill = document.getElementById('hoursProgressFill');
+  const hoursProgressText = document.getElementById('hoursProgressText');
+  const hoursTargetInput = document.getElementById('hoursTargetInput');
+
+  function renderHoursValue() {
+    hoursValueEl.textContent = hours;
+  }
+
+  function renderHoursProgress() {
+    const pct = hoursTarget > 0 ? Math.min(100, (hours / hoursTarget) * 100) : 0;
+    hoursProgressFill.style.width = pct + '%';
+    hoursProgressText.textContent = `${hours} / ${hoursTarget} hrs`;
+  }
+
+  function adjustHours(delta) {
+    hours = Math.max(0, hours + delta);
+    save(STORE_HOURS, hours);
+    hoursHistory.push({ t: Date.now(), v: hours });
+    save(STORE_HOURS_HISTORY, hoursHistory);
+    renderHoursValue();
+    renderHoursProgress();
+    renderHoursChart();
+  }
+
+  document.getElementById('plusBtn').addEventListener('click', () => adjustHours(1));
+  document.getElementById('minusBtn').addEventListener('click', () => adjustHours(-1));
+
+  hoursTargetInput.value = hoursTarget;
+  hoursTargetInput.addEventListener('change', () => {
+    const val = Number(hoursTargetInput.value);
+    if (!val || val <= 0) { hoursTargetInput.value = hoursTarget; return; }
+    hoursTarget = val;
+    save(STORE_HOURS_TARGET, hoursTarget);
+    renderHoursProgress();
+    renderHoursChart();
+  });
+
+  // ---------- GRE UI ----------
+  const qInput = document.getElementById('qInput');
+  const vInput = document.getElementById('vInput');
+  const greError = document.getElementById('greError');
+  const qTargetInput = document.getElementById('qTargetInput');
+  const vTargetInput = document.getElementById('vTargetInput');
+
+  qInput.value = load(STORE_LAST_Q, '');
+  vInput.value = load(STORE_LAST_V, '');
+  qTargetInput.value = qTarget;
+  vTargetInput.value = vTarget;
+
+  qTargetInput.addEventListener('change', () => {
+    const val = Number(qTargetInput.value);
+    if (!val || val < 130 || val > 170) { qTargetInput.value = qTarget; return; }
+    qTarget = val;
+    save(STORE_Q_TARGET, qTarget);
+    renderGreChart();
+  });
+
+  vTargetInput.addEventListener('change', () => {
+    const val = Number(vTargetInput.value);
+    if (!val || val < 130 || val > 170) { vTargetInput.value = vTarget; return; }
+    vTarget = val;
+    save(STORE_V_TARGET, vTarget);
+    renderGreChart();
+  });
+
+  function logGre() {
+    const q = Number(qInput.value);
+    const v = Number(vInput.value);
+    greError.textContent = '';
+
+    if (!qInput.value || !vInput.value) {
+      greError.textContent = 'Enter both a Quant and a Verbal score.';
+      return;
+    }
+    if (q < 130 || q > 170 || v < 130 || v > 170) {
+      greError.textContent = 'Scores must be between 130 and 170.';
+      return;
+    }
+
+    greHistory.push({ t: Date.now(), q, v });
+    save(STORE_GRE_HISTORY, greHistory);
+    save(STORE_LAST_Q, q);
+    save(STORE_LAST_V, v);
+    renderGreChart();
+  }
+
+  document.getElementById('logGreBtn').addEventListener('click', logGre);
+
+  // ---------- reset ----------
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (!confirm('This clears hours, GRE history, and targets saved in this browser. Continue?')) return;
+    [STORE_HOURS, STORE_HOURS_HISTORY, STORE_GRE_HISTORY, STORE_LAST_Q, STORE_LAST_V,
+     STORE_HOURS_TARGET, STORE_Q_TARGET, STORE_V_TARGET].forEach(k => localStorage.removeItem(k));
+    hours = 0;
+    hoursHistory = [];
+    greHistory = [];
+    hoursTarget = 120;
+    qTarget = 170;
+    vTarget = 165;
+    qInput.value = '';
+    vInput.value = '';
+    hoursTargetInput.value = hoursTarget;
+    qTargetInput.value = qTarget;
+    vTargetInput.value = vTarget;
+    renderHoursValue();
+    renderHoursProgress();
+    if (hoursChart) { hoursChart.destroy(); hoursChart = null; }
+    if (greChart) { greChart.destroy(); greChart = null; }
+    renderHoursChart();
+    renderGreChart();
+  });
+
+  // ---------- init ----------
+  renderHoursValue();
+  renderHoursProgress();
+  renderHoursChart();
+  renderGreChart();
+</script>
+
+</body>
+</html>
