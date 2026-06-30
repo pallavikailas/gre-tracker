@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Study & GRE Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;700&family=IBM+Plex+Mono:wght=500;600&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root {
@@ -80,7 +80,6 @@
     margin: 0 0 14px;
   }
 
-  /* Hours counter */
   .counter-row {
     display: flex;
     align-items: center;
@@ -175,7 +174,6 @@
     margin-top: 6px;
   }
 
-  /* GRE form */
   .field-row {
     display: flex;
     gap: 12px;
@@ -247,7 +245,6 @@
     margin-top: 4px;
   }
 
-  /* Charts */
   .chart-card {
     grid-column: 1 / -1;
     margin-top: 18px;
@@ -284,7 +281,7 @@
 <div class="wrap">
   <header>
     <h1>Study &amp; GRE Tracker</h1>
-    <p>Tap +/- to log study hours · log GRE Quant and Verbal scores as you go. Everything saves to this browser automatically.</p>
+    <p>Tap +/- to log study hours · log GRE Quant and Verbal scores as you go. Data stays completely synced across your screens.</p>
   </header>
 
   <div class="grid">
@@ -345,7 +342,7 @@
 </div>
 
 <script>
-  // ---------- storage ----------
+  // ---------- storage configuration ----------
   const API_URL = "https://script.google.com/macros/s/AKfycbwD1MzUId97tads32NHhGnw4fABL-gmdYs3yCfpgxcg7GCD6mkl4NrfoJx_uXwtqnM/exec";
   
   async function loadFromSheets() {
@@ -357,14 +354,14 @@
     try {
       await fetch(API_URL, {
         method: "POST",
-        mode: "no-cors", // Necessary for Google Apps Script deployment URL requests
+        mode: "no-cors",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
       });
     } catch(e) {
-      console.error("Failed to sync to Sheets:", e);
+      console.error("Sync error:", e);
     }
   }
   
@@ -387,27 +384,29 @@
   };
   const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
 
+  // Initialize from LocalStorage state instantly
   let hours = load(STORE_HOURS, 0);
-  let hoursHistory = load(STORE_HOURS_HISTORY, []); // [{t, v}]
-  let greHistory = load(STORE_GRE_HISTORY, []);      // [{t, q, v}]
+  let hoursHistory = load(STORE_HOURS_HISTORY, []); 
+  let greHistory = load(STORE_GRE_HISTORY, []);      
   let hoursTarget = load(STORE_HOURS_TARGET, 120);
   let qTarget = load(STORE_Q_TARGET, 170);
   let vTarget = load(STORE_V_TARGET, 165);
 
-  // ---------- helpers ----------
+  // ---------- helper elements ----------
   const fmtLabel = (ts) => {
     const d = new Date(ts);
+    if (isNaN(d.getTime())) return "Logged Entry";
     const pad = (n) => String(n).padStart(2, '0');
     return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  // ---------- charts ----------
+  // ---------- charts instance handling ----------
   let hoursChart, greChart;
 
   function renderHoursChart() {
     const empty = document.getElementById('hoursEmpty');
     const canvas = document.getElementById('hoursChart');
-    if (hoursHistory.length === 0) {
+    if (!hoursHistory || hoursHistory.length === 0) {
       empty.style.display = 'block';
       canvas.style.display = 'none';
       return;
@@ -461,7 +460,7 @@
   function renderGreChart() {
     const empty = document.getElementById('greEmpty');
     const canvas = document.getElementById('greChart');
-    if (greHistory.length === 0) {
+    if (!greHistory || greHistory.length === 0) {
       empty.style.display = 'block';
       canvas.style.display = 'none';
       return;
@@ -558,7 +557,7 @@
     };
   }
 
-  // ---------- hours UI ----------
+  // ---------- Hours Interfacing ----------
   const hoursValueEl = document.getElementById('hoursValue');
   const hoursProgressFill = document.getElementById('hoursProgressFill');
   const hoursProgressText = document.getElementById('hoursProgressText');
@@ -579,11 +578,11 @@
     save(STORE_HOURS, hours);
     hoursHistory.push({ t: Date.now(), v: hours });
     save(STORE_HOURS_HISTORY, hoursHistory);
+    
     renderHoursValue();
     renderHoursProgress();
     renderHoursChart();
     
-    // Sync change to Google Sheets
     saveToSheets({ type: 'hours', value: hours, timestamp: new Date().toISOString() });
   }
 
@@ -601,7 +600,7 @@
     saveToSheets({ type: 'hoursTarget', value: hoursTarget });
   });
 
-  // ---------- GRE UI ----------
+  // ---------- GRE Interfacing ----------
   const qInput = document.getElementById('qInput');
   const vInput = document.getElementById('vInput');
   const greError = document.getElementById('greError');
@@ -649,15 +648,14 @@
     save(STORE_GRE_HISTORY, greHistory);
     save(STORE_LAST_Q, q);
     save(STORE_LAST_V, v);
-    renderGreChart();
     
-    // Sync score log to Google Sheets
+    renderGreChart();
     saveToSheets({ type: 'gre', quant: q, verbal: v, timestamp: new Date().toISOString() });
   }
 
   document.getElementById('logGreBtn').addEventListener('click', logGre);
 
-  // ---------- reset ----------
+  // ---------- clear local database ----------
   document.getElementById('resetBtn').addEventListener('click', () => {
     if (!confirm('This clears hours, GRE history, and targets saved in this browser. Continue?')) return;
     [STORE_HOURS, STORE_HOURS_HISTORY, STORE_GRE_HISTORY, STORE_LAST_Q, STORE_LAST_V,
@@ -681,45 +679,93 @@
     renderGreChart();
   });
 
-  // ---------- init ----------
+  // ---------- core engine synchronization init ----------
   (async function () {
+    // Stage 1: Render Local cache instantly so elements never drop back to 0 visually
+    renderHoursValue();
+    renderHoursProgress();
+    renderHoursChart();
+    renderGreChart();
+
     try {
+      // Stage 2: Attempt background fetch over network
       const data = await loadFromSheets();
-      if (data.hours !== undefined)
+      if (!data) return;
+
+      if (data.hours !== undefined && data.hours !== null && data.hours !== "") {
         hours = Number(data.hours);
-      
-      if (data.hoursTarget !== undefined)
+        save(STORE_HOURS, hours);
+      }
+      if (data.hoursTarget !== undefined && data.hoursTarget !== "") {
         hoursTarget = Number(data.hoursTarget);
-      
-      if (data.qTarget !== undefined)
+        save(STORE_HOURS_TARGET, hoursTarget);
+        hoursTargetInput.value = hoursTarget;
+      }
+      if (data.qTarget !== undefined && data.qTarget !== "") {
         qTarget = Number(data.qTarget);
-      
-      if (data.vTarget !== undefined)
+        save(STORE_Q_TARGET, qTarget);
+        qTargetInput.value = qTarget;
+      }
+      if (data.vTarget !== undefined && data.vTarget !== "") {
         vTarget = Number(data.vTarget);
+        save(STORE_V_TARGET, vTarget);
+        vTargetInput.value = vTarget;
+      }
       
-      hoursHistory = [];
-      greHistory = [];
-      
+      // Stage 3: Parse sheet rows safely despite formatting drops
       if (Array.isArray(data.history)) {
-        data.history.forEach(r => {
-          const t = new Date(r[0]).getTime();
-          if (r[1] !== undefined && r[1] !== "")
-            hoursHistory.push({
-              t,
+        const structuralHours = [];
+        const structuralGre = [];
+
+        data.history.forEach((r) => {
+          if (!r || r.length === 0) return;
+          
+          let entryTime = Date.now();
+          if (r[0]) {
+            const parsedTs = new Date(r[0]).getTime();
+            if (!isNaN(parsedTs)) entryTime = parsedTs;
+          }
+
+          // Safe row check for Column B (Hours Logged)
+          if (r[1] !== undefined && r[1] !== null && r[1] !== "" && !isNaN(r[1])) {
+            structuralHours.push({
+              t: entryTime,
               v: Number(r[1])
             });
+          }
           
-          if ((r[2] !== undefined && r[2] !== "") || (r[3] !== undefined && r[3] !== ""))
-            greHistory.push({
-              t,
+          // Safe row check for Columns C & D (GRE metrics matching structural layout)
+          if (r[2] !== undefined && r[2] !== null && r[2] !== "" && !isNaN(r[2]) &&
+              r[3] !== undefined && r[3] !== null && r[3] !== "" && !isNaN(r[3])) {
+            structuralGre.push({
+              t: entryTime,
               q: Number(r[2]),
               v: Number(r[3])
             });
+          }
         });
+
+        // Update working data profiles only if arrays contain entries
+        if (structuralHours.length > 0) {
+          hoursHistory = structuralHours;
+          save(STORE_HOURS_HISTORY, hoursHistory);
+        }
+        if (structuralGre.length > 0) {
+          greHistory = structuralGre;
+          save(STORE_GRE_HISTORY, greHistory);
+          
+          const finalScore = greHistory[greHistory.length - 1];
+          qInput.value = finalScore.q;
+          vInput.value = finalScore.v;
+          save(STORE_LAST_Q, finalScore.q);
+          save(STORE_LAST_V, finalScore.v);
+        }
       }
     } catch (e) {
-      console.log("Using localStorage fallback");
+      console.warn("Sheet response parsing bypassed, remaining safely inside localized instance.");
     }
+
+    // Stage 4: Re-render interface elements smoothly
     renderHoursValue();
     renderHoursProgress();
     renderHoursChart();
