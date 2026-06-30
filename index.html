@@ -347,39 +347,45 @@
   
   async function loadFromSheets() {
     const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
     return await res.json();
   }
-  
-  async function saveToSheets() {
+
+  function buildSheetHistory() {
     const history = [];
-    const max = Math.max(hoursHistory.length, greHistory.length);
+    hoursHistory.forEach((h) => {
+      history.push([new Date(h.t).toISOString(), h.v, "", ""]);
+    });
+    greHistory.forEach((g) => {
+      history.push([new Date(g.t).toISOString(), "", g.q, g.v]);
+    });
+    history.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+    return history;
+  }
 
-    for (let i = 0; i < max; i++) {
-      const h = hoursHistory[i];
-      const g = greHistory[i];
-      history.push([
-        h ? new Date(h.t).toISOString() : (g ? new Date(g.t).toISOString() : ""),
-        h ? h.v : "",
-        g ? g.q : "",
-        g ? g.v : ""
-      ]);
-    }
-
+  async function saveToSheets() {
     const payload = {
       hours,
       hoursTarget,
       qTarget,
       vTarget,
-      history
+      history: buildSheetHistory()
     };
 
-    const res = await fetch(API_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify(payload)
-    });
-
-    console.log(await res.text());
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        redirect: "manual",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      // Apps Script returns 302; following it would drop the POST body
+      if (res.type !== "opaqueredirect" && !res.ok && res.status !== 0) {
+        console.warn("Sheet save failed:", res.status, await res.text());
+      }
+    } catch (e) {
+      console.warn("Sheet save error:", e);
+    }
   }
   
   const STORE_HOURS = 'tracker_hours_value';
@@ -607,7 +613,7 @@
   document.getElementById('minusBtn').addEventListener('click', () => adjustHours(-1));
 
   hoursTargetInput.value = hoursTarget;
-  hoursTargetInput.addEventListener('change', () => {
+  hoursTargetInput.addEventListener('change', async () => {
     const val = Number(hoursTargetInput.value);
     if (!val || val <= 0) { hoursTargetInput.value = hoursTarget; return; }
     hoursTarget = val;
@@ -629,7 +635,7 @@
   qTargetInput.value = qTarget;
   vTargetInput.value = vTarget;
 
-  qTargetInput.addEventListener('change', () => {
+  qTargetInput.addEventListener('change', async () => {
     const val = Number(qTargetInput.value);
     if (!val || val < 130 || val > 170) { qTargetInput.value = qTarget; return; }
     qTarget = val;
@@ -638,7 +644,7 @@
     await saveToSheets();
   });
 
-  vTargetInput.addEventListener('change', () => {
+  vTargetInput.addEventListener('change', async () => {
     const val = Number(vTargetInput.value);
     if (!val || val < 130 || val > 170) { vTargetInput.value = vTarget; return; }
     vTarget = val;
@@ -673,8 +679,8 @@
   document.getElementById('logGreBtn').addEventListener('click', logGre);
 
   // ---------- clear local database ----------
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    if (!confirm('This clears hours, GRE history, and targets saved in this browser. Continue?')) return;
+  document.getElementById('resetBtn').addEventListener('click', async () => {
+    if (!confirm('This clears hours, GRE history, and targets on all devices. Continue?')) return;
     [STORE_HOURS, STORE_HOURS_HISTORY, STORE_GRE_HISTORY, STORE_LAST_Q, STORE_LAST_V,
      STORE_HOURS_TARGET, STORE_Q_TARGET, STORE_V_TARGET].forEach(k => localStorage.removeItem(k));
     hours = 0;
@@ -694,6 +700,7 @@
     if (greChart) { greChart.destroy(); greChart = null; }
     renderHoursChart();
     renderGreChart();
+    await saveToSheets();
   });
 
   // ---------- core engine synchronization init ----------
@@ -763,23 +770,27 @@
           }
         });
 
-        // Update working data profiles only if arrays contain entries
-        if (structuralHours.length > 0) {
-          hoursHistory = structuralHours;
+        // Sheet is source of truth — always apply history (including empty after reset elsewhere)
+        hoursHistory = structuralHours;
+        greHistory = structuralGre;
+        save(STORE_HOURS_HISTORY, hoursHistory);
+        save(STORE_GRE_HISTORY, greHistory);
+
+        if (hoursHistory.length > 0) {
           hours = hoursHistory.at(-1).v;
-          save(STORE_HOURS_HISTORY, hoursHistory);
+          save(STORE_HOURS, hours);
         }
-        if (structuralGre.length > 0) {
-          greHistory = structuralGre;
-          qInput.value = greHistory.at(-1).q;
-          vInput.value = greHistory.at(-1).v;
-          save(STORE_GRE_HISTORY, greHistory);
-          
-          const finalScore = greHistory[greHistory.length - 1];
+        if (greHistory.length > 0) {
+          const finalScore = greHistory.at(-1);
           qInput.value = finalScore.q;
           vInput.value = finalScore.v;
           save(STORE_LAST_Q, finalScore.q);
           save(STORE_LAST_V, finalScore.v);
+        } else {
+          qInput.value = "";
+          vInput.value = "";
+          localStorage.removeItem(STORE_LAST_Q);
+          localStorage.removeItem(STORE_LAST_V);
         }
       }
     } catch (e) {
