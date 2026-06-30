@@ -347,19 +347,25 @@
 <script>
   // ---------- storage ----------
   const API_URL = "https://script.google.com/macros/s/AKfycbwD1MzUId97tads32NHhGnw4fABL-gmdYs3yCfpgxcg7GCD6mkl4NrfoJx_uXwtqnM/exec";
+  
   async function loadFromSheets() {
     const res = await fetch(API_URL);
     return await res.json();
   }
   
   async function saveToSheets(data) {
-    await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    });
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors", // Necessary for Google Apps Script deployment URL requests
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+    } catch(e) {
+      console.error("Failed to sync to Sheets:", e);
+    }
   }
   
   const STORE_HOURS = 'tracker_hours_value';
@@ -383,7 +389,7 @@
 
   let hours = load(STORE_HOURS, 0);
   let hoursHistory = load(STORE_HOURS_HISTORY, []); // [{t, v}]
-  let greHistory = load(STORE_GRE_HISTORY, []);     // [{t, q, v}]
+  let greHistory = load(STORE_GRE_HISTORY, []);      // [{t, q, v}]
   let hoursTarget = load(STORE_HOURS_TARGET, 120);
   let qTarget = load(STORE_Q_TARGET, 170);
   let vTarget = load(STORE_V_TARGET, 165);
@@ -398,7 +404,7 @@
   // ---------- charts ----------
   let hoursChart, greChart;
 
-  function HoursChart() {
+  function renderHoursChart() {
     const empty = document.getElementById('hoursEmpty');
     const canvas = document.getElementById('hoursChart');
     if (hoursHistory.length === 0) {
@@ -452,7 +458,7 @@
     }
   }
 
-  function GreChart() {
+  function renderGreChart() {
     const empty = document.getElementById('greEmpty');
     const canvas = document.getElementById('greChart');
     if (greHistory.length === 0) {
@@ -558,11 +564,11 @@
   const hoursProgressText = document.getElementById('hoursProgressText');
   const hoursTargetInput = document.getElementById('hoursTargetInput');
 
-  function HoursValue() {
+  function renderHoursValue() {
     hoursValueEl.textContent = hours;
   }
 
-  function HoursProgress() {
+  function renderHoursProgress() {
     const pct = hoursTarget > 0 ? Math.min(100, (hours / hoursTarget) * 100) : 0;
     hoursProgressFill.style.width = pct + '%';
     hoursProgressText.textContent = `${hours} / ${hoursTarget} hrs`;
@@ -573,9 +579,12 @@
     save(STORE_HOURS, hours);
     hoursHistory.push({ t: Date.now(), v: hours });
     save(STORE_HOURS_HISTORY, hoursHistory);
-    HoursValue();
-    HoursProgress();
-    HoursChart();
+    renderHoursValue();
+    renderHoursProgress();
+    renderHoursChart();
+    
+    // Sync change to Google Sheets
+    saveToSheets({ type: 'hours', value: hours, timestamp: new Date().toISOString() });
   }
 
   document.getElementById('plusBtn').addEventListener('click', () => adjustHours(1));
@@ -589,6 +598,7 @@
     save(STORE_HOURS_TARGET, hoursTarget);
     renderHoursProgress();
     renderHoursChart();
+    saveToSheets({ type: 'hoursTarget', value: hoursTarget });
   });
 
   // ---------- GRE UI ----------
@@ -609,6 +619,7 @@
     qTarget = val;
     save(STORE_Q_TARGET, qTarget);
     renderGreChart();
+    saveToSheets({ type: 'qTarget', value: qTarget });
   });
 
   vTargetInput.addEventListener('change', () => {
@@ -617,6 +628,7 @@
     vTarget = val;
     save(STORE_V_TARGET, vTarget);
     renderGreChart();
+    saveToSheets({ type: 'vTarget', value: vTarget });
   });
 
   function logGre() {
@@ -638,6 +650,9 @@
     save(STORE_LAST_Q, q);
     save(STORE_LAST_V, v);
     renderGreChart();
+    
+    // Sync score log to Google Sheets
+    saveToSheets({ type: 'gre', quant: q, verbal: v, timestamp: new Date().toISOString() });
   }
 
   document.getElementById('logGreBtn').addEventListener('click', logGre);
@@ -688,13 +703,13 @@
       if (Array.isArray(data.history)) {
         data.history.forEach(r => {
           const t = new Date(r[0]).getTime();
-          if (r[1] !== "")
+          if (r[1] !== undefined && r[1] !== "")
             hoursHistory.push({
               t,
               v: Number(r[1])
             });
           
-          if (r[2] !== "" || r[3] !== "")
+          if ((r[2] !== undefined && r[2] !== "") || (r[3] !== undefined && r[3] !== ""))
             greHistory.push({
               t,
               q: Number(r[2]),
@@ -703,7 +718,7 @@
         });
       }
     } catch (e) {
-      console.log("Using localStorage");
+      console.log("Using localStorage fallback");
     }
     renderHoursValue();
     renderHoursProgress();
