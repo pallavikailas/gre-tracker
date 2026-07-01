@@ -17,9 +17,7 @@
   --line: #E5E1D6;
   --radius: 14px;
 }
-
 * { box-sizing: border-box; }
-
 body {
   margin: 0;
   background: var(--bg);
@@ -28,304 +26,154 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-
 h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
-
-/* ── Topbar ── */
 .wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
 
+/* topbar */
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 28px;
-  gap: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; gap: 12px;
 }
 .brand h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; }
 .brand p  { margin: 3px 0 0; color: var(--muted); font-size: 0.8rem; }
-
 .topbar-right { display: flex; align-items: center; gap: 8px; }
-
 .sync-pill {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 11px;
-  border-radius: 99px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  font-size: 0.75rem;
-  font-family: 'IBM Plex Mono', monospace;
-  color: var(--muted);
-  white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 99px;
+  border: 1px solid var(--line); background: var(--panel);
+  font-size: 0.75rem; font-family: 'IBM Plex Mono', monospace;
+  color: var(--muted); white-space: nowrap;
 }
 .sync-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #9CA3AF;
-  flex-shrink: 0;
-  transition: background 0.2s;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #9CA3AF; flex-shrink: 0; transition: background 0.2s;
 }
 .s-idle    .sync-dot { background: #9CA3AF; }
-.s-loading .sync-dot { background: #F59E0B; animation: blink 0.9s ease-in-out infinite; }
-.s-saving  .sync-dot { background: #3B82F6; animation: blink 0.7s ease-in-out infinite; }
+.s-loading .sync-dot { background: #F59E0B; animation: blink 0.9s infinite; }
+.s-saving  .sync-dot { background: #3B82F6; animation: blink 0.7s infinite; }
 .s-synced  .sync-dot { background: #22C55E; }
 .s-error   .sync-dot { background: #EF4444; }
-@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
-
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
 .icon-btn {
-  width: 34px; height: 34px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink-soft);
-  cursor: pointer;
-  font-size: 1rem;
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--panel);
+  color: var(--ink-soft); cursor: pointer; font-size: 1rem;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
 }
 .icon-btn:hover { border-color: #9CA3AF; }
 
-/* ── Grid ── */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
+/* grid */
+.grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
 @media (max-width: 740px) {
   .grid { grid-template-columns: 1fr; }
   .topbar { flex-wrap: wrap; }
 }
 
-/* ── Card ── */
+/* card */
 .card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
 }
-
-/* Per-card accent colours */
-.card-hours { --ac: #B8860B; --ac-bg: rgba(184,134,11,0.08); }
-.card-q     { --ac: #2A6F77; --ac-bg: rgba(42,111,119,0.08); }
-.card-v     { --ac: #B5495B; --ac-bg: rgba(181,73,91,0.08); }
-
+.card-hours { --ac:#B8860B; --ac-bg:rgba(184,134,11,0.08); }
+.card-q     { --ac:#2A6F77; --ac-bg:rgba(42,111,119,0.08); }
+.card-v     { --ac:#B5495B; --ac-bg:rgba(181,73,91,0.08); }
 .card-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--muted);
 }
-
-/* ── Stat row ── */
 .stat-row { display: flex; align-items: baseline; gap: 6px; }
 .big-num {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 2.75rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--ac);
-  letter-spacing: -0.02em;
+  font-size: 2.75rem; font-weight: 600; line-height: 1;
+  color: var(--ac); letter-spacing: -0.02em;
 }
-.big-denom {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.95rem;
-  color: var(--muted);
-}
+.big-denom { font-family: 'IBM Plex Mono', monospace; font-size: 0.95rem; color: var(--muted); }
+.progress-track { height: 5px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress-fill  { height: 100%; width: 0%; background: var(--ac); border-radius: 99px; transition: width 0.4s; }
+.progress-lbl   { font-size: 0.73rem; font-family: 'IBM Plex Mono', monospace; color: var(--muted); margin-top: -4px; }
 
-/* ── Progress ── */
-.progress-track {
-  height: 5px;
-  background: var(--line);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--ac);
-  border-radius: 99px;
-  transition: width 0.4s ease;
-}
-.progress-lbl {
-  font-size: 0.73rem;
-  font-family: 'IBM Plex Mono', monospace;
-  color: var(--muted);
-  margin-top: -4px;
-}
-
-/* ── Hours counter ── */
+/* counter */
 .counter-row { display: flex; gap: 8px; }
 .counter-btn {
-  flex: 1;
-  height: 44px;
-  border-radius: 10px;
-  border: 1.5px solid var(--ac);
-  background: var(--ac-bg);
-  color: var(--ac);
-  font-size: 1.45rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.12s;
-  touch-action: manipulation;
+  flex: 1; height: 44px; border-radius: 10px;
+  border: 1.5px solid var(--ac); background: var(--ac-bg); color: var(--ac);
+  font-size: 1.45rem; font-weight: 700; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s; touch-action: manipulation;
+  user-select: none;
 }
 .counter-btn:hover  { background: var(--ac); color: #fff; }
 .counter-btn:active { transform: scale(0.95); }
 .counter-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── GRE score input ── */
+/* score row */
 .score-row { display: flex; gap: 8px; }
 .score-input {
-  flex: 1;
-  min-width: 0;
-  height: 40px;
-  padding: 0 10px;
-  border-radius: 8px;
-  border: 1.5px solid var(--line);
-  background: var(--bg);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 1rem;
-  color: var(--ink);
+  flex: 1; min-width: 0; height: 40px; padding: 0 10px;
+  border-radius: 8px; border: 1.5px solid var(--line);
+  background: var(--bg); font-family: 'IBM Plex Mono', monospace;
+  font-size: 1rem; color: var(--ink);
 }
 .score-input:focus { outline: none; border-color: var(--ac); }
 .log-btn {
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 8px;
-  border: none;
-  background: var(--ac);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  white-space: nowrap;
-  touch-action: manipulation;
+  height: 40px; padding: 0 14px; border-radius: 8px; border: none;
+  background: var(--ac); color: #fff; font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; white-space: nowrap; touch-action: manipulation;
 }
 .log-btn:hover { opacity: 0.85; }
 .log-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.error-msg { margin: -4px 0 -4px; font-size: 0.73rem; color: #EF4444; min-height: 1em; }
 
-.error-msg {
-  margin: -4px 0 -4px;
-  font-size: 0.73rem;
-  color: #EF4444;
-  min-height: 1em;
-}
-
-/* ── Chart ── */
-.chart-wrap {
-  position: relative;
-  height: 150px;
-  margin-top: 4px;
-}
+/* chart */
+.chart-wrap { position: relative; height: 150px; margin-top: 4px; }
 .chart-wrap canvas { width: 100%; height: 100%; }
 .chart-empty {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.78rem;
-  font-style: italic;
-  color: var(--muted);
-  border: 1px dashed var(--line);
-  border-radius: 8px;
+  position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 0.78rem; font-style: italic; color: var(--muted);
+  border: 1px dashed var(--line); border-radius: 8px;
 }
 
-/* ── Modal ── */
+/* modal */
 .modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(20, 28, 40, 0.45);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 100;
+  position: fixed; inset: 0; background: rgba(20,28,40,0.45);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px; z-index: 100;
 }
 .modal-backdrop.open { display: flex; }
-
 .modal {
-  background: var(--panel);
-  border-radius: 16px;
-  padding: 26px;
-  width: 100%;
-  max-width: 440px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-height: 90vh;
-  overflow-y: auto;
+  background: var(--panel); border-radius: 16px; padding: 26px;
+  width: 100%; max-width: 440px; display: flex; flex-direction: column;
+  gap: 14px; max-height: 90vh; overflow-y: auto;
 }
 .modal h2 { font-size: 1.1rem; }
 .modal p  { margin: 0; font-size: 0.83rem; color: var(--muted); line-height: 1.55; }
-
-.modal label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-.modal input[type="url"], .modal input[type="text"] {
-  width: 100%;
-  padding: 9px 11px;
-  border-radius: 8px;
-  border: 1.5px solid var(--line);
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 0.82rem;
-  color: var(--ink);
-  background: var(--bg);
+.modal label { display: flex; flex-direction: column; gap: 5px; font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); }
+.modal input[type="text"],
+.modal input[type="password"] {
+  width: 100%; padding: 9px 11px; border-radius: 8px;
+  border: 1.5px solid var(--line); font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem; color: var(--ink); background: var(--bg);
 }
 .modal input:focus { outline: none; border-color: #6B7280; }
-
 .hint-box {
-  background: #FFFBEB;
-  border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 0.77rem;
-  line-height: 1.65;
-  color: #78520A;
+  background: #FFFBEB; border-radius: 8px; padding: 12px 14px;
+  font-size: 0.77rem; line-height: 1.65; color: #78520A;
 }
 .hint-box code {
-  font-family: 'IBM Plex Mono', monospace;
-  background: rgba(184,134,11,0.15);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 0.8em;
+  font-family: 'IBM Plex Mono', monospace; background: rgba(184,134,11,0.15);
+  padding: 1px 4px; border-radius: 3px; font-size: 0.8em;
 }
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 4px;
-}
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
 .btn-ghost {
-  background: none;
-  border: none;
-  color: var(--muted);
-  font-size: 0.88rem;
-  cursor: pointer;
-  text-decoration: underline;
-  font-family: inherit;
+  background: none; border: none; color: var(--muted);
+  font-size: 0.88rem; cursor: pointer; text-decoration: underline; font-family: inherit;
 }
 .btn-primary {
-  padding: 9px 20px;
-  border-radius: 8px;
-  border: none;
-  background: var(--ink);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.88rem;
-  cursor: pointer;
-  font-family: inherit;
+  padding: 9px 20px; border-radius: 8px; border: none;
+  background: var(--ink); color: #fff; font-weight: 600;
+  font-size: 0.88rem; cursor: pointer; font-family: inherit;
 }
 .btn-primary:hover { opacity: 0.85; }
 </style>
@@ -336,11 +184,11 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
   <div class="topbar">
     <div class="brand">
       <h1>GRE Tracker</h1>
-      <p>Study hours · Quant · Verbal — synced to Google Sheets</p>
+      <p>Study hours · Quant · Verbal — synced via GitHub</p>
     </div>
     <div class="topbar-right">
       <div class="sync-pill s-idle" id="syncPill">
-        <div class="sync-dot" id="syncDot"></div>
+        <div class="sync-dot"></div>
         <span id="syncLabel">Not connected</span>
       </div>
       <button class="icon-btn" id="syncBtn" title="Sync now">↻</button>
@@ -350,20 +198,18 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
 
   <div class="grid">
 
-    <!-- ── HOURS ── -->
+    <!-- HOURS -->
     <div class="card card-hours">
       <div class="card-label">Hours logged</div>
       <div class="stat-row">
         <div class="big-num" id="hoursDisplay">—</div>
         <div class="big-denom">/ <span id="hoursTargetLbl">120</span></div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="hoursBar"></div>
-      </div>
+      <div class="progress-track"><div class="progress-fill" id="hoursBar"></div></div>
       <div class="progress-lbl" id="hoursLbl">— of 120 hrs</div>
       <div class="counter-row">
-        <button class="counter-btn" id="minusBtn" aria-label="Subtract 1 hour">−</button>
-        <button class="counter-btn" id="plusBtn"  aria-label="Add 1 hour">+</button>
+        <button class="counter-btn" id="minusBtn" aria-label="−1 hour">−</button>
+        <button class="counter-btn" id="plusBtn"  aria-label="+1 hour">+</button>
       </div>
       <div class="chart-wrap">
         <canvas id="hoursChart"></canvas>
@@ -371,16 +217,14 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
       </div>
     </div>
 
-    <!-- ── GRE QUANT ── -->
+    <!-- GRE QUANT -->
     <div class="card card-q">
       <div class="card-label">GRE Quant</div>
       <div class="stat-row">
         <div class="big-num" id="qDisplay">—</div>
         <div class="big-denom">/ <span id="qTargetLbl">170</span></div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="qBar"></div>
-      </div>
+      <div class="progress-track"><div class="progress-fill" id="qBar"></div></div>
       <div class="progress-lbl" id="qLbl">— of 170</div>
       <div class="score-row">
         <input class="score-input" id="qInput" type="number" min="130" max="170" step="1"
@@ -394,16 +238,14 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
       </div>
     </div>
 
-    <!-- ── GRE VERBAL ── -->
+    <!-- GRE VERBAL -->
     <div class="card card-v">
       <div class="card-label">GRE Verbal</div>
       <div class="stat-row">
         <div class="big-num" id="vDisplay">—</div>
         <div class="big-denom">/ <span id="vTargetLbl">165</span></div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="vBar"></div>
-      </div>
+      <div class="progress-track"><div class="progress-fill" id="vBar"></div></div>
       <div class="progress-lbl" id="vLbl">— of 165</div>
       <div class="score-row">
         <input class="score-input" id="vInput" type="number" min="130" max="170" step="1"
@@ -420,27 +262,31 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
   </div>
 </div>
 
-<!-- ── SETTINGS MODAL ── -->
+<!-- SETTINGS MODAL -->
 <div class="modal-backdrop" id="setupBackdrop">
   <div class="modal">
-    <h2>Connect to Google Sheets</h2>
-    <p>
-      Paste your Apps Script Web App URL below. It's saved only in this browser's
-      <code style="font-family:'IBM Plex Mono',monospace;font-size:0.9em">localStorage</code>
-      — never sent anywhere except directly to your Google Sheet.
-    </p>
-    <label>
-      Apps Script Web App URL
-      <input type="url" id="scriptUrlInput"
-             placeholder="https://script.google.com/macros/s/…/exec">
+    <h2>Connect to GitHub</h2>
+    <p>Your data lives in <code style="font-family:'IBM Plex Mono',monospace">data.json</code> in your repo.
+       These credentials are saved only in this browser's localStorage — never committed to GitHub.</p>
+    <label>GitHub username
+      <input type="text" id="ownerInput" placeholder="e.g. pallavi-dev" autocomplete="off">
+    </label>
+    <label>Repository name
+      <input type="text" id="repoInput" placeholder="e.g. gre-tracker" autocomplete="off">
+    </label>
+    <label>Branch
+      <input type="text" id="branchInput" placeholder="main">
+    </label>
+    <label>Personal access token
+      <input type="password" id="tokenInput" placeholder="github_pat_… or ghp_…" autocomplete="off">
     </label>
     <div class="hint-box">
-      <strong>Where to find this URL:</strong><br>
-      In your Apps Script editor → <code>Deploy</code> → <code>Manage deployments</code>
-      → copy the <code>Web app URL</code>.<br><br>
-      Make sure it's deployed with:<br>
-      • <em>Execute as:</em> <code>Me</code><br>
-      • <em>Who has access:</em> <code>Anyone</code>
+      <strong>Create a token:</strong><br>
+      GitHub → Settings → Developer settings → Personal access tokens
+      → <strong>Fine-grained tokens</strong> → Generate new token<br><br>
+      Repository access: <em>Only selected repositories</em> → pick this repo<br>
+      Permissions → Contents: <code>Read and write</code><br><br>
+      Classic token also works — just needs the <code>repo</code> scope.
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="cancelSetupBtn">Cancel</button>
@@ -452,37 +298,166 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
 <script>
 'use strict';
 
-/* ════════════════════════════════════════
-   CONFIG  (localStorage)
-   ════════════════════════════════════════ */
-const CFG = 'gre_tracker_v1';
+/* ═══════════════════════════════════════
+   CONFIG — stored in localStorage only
+   ═══════════════════════════════════════ */
+const CFG_KEY = 'gre_gh_v1';
 const cfg = {
-  get() { try { return JSON.parse(localStorage.getItem(CFG) || '{}'); } catch { return {}; } },
-  set(patch) { localStorage.setItem(CFG, JSON.stringify({ ...this.get(), ...patch })); },
-  url() { return this.get().scriptUrl || ''; }
+  get()    { try { return JSON.parse(localStorage.getItem(CFG_KEY) || '{}'); } catch { return {}; } },
+  set(p)   { localStorage.setItem(CFG_KEY, JSON.stringify({ ...this.get(), ...p })); },
+  valid()  { const c = this.get(); return !!(c.owner && c.repo && c.token); }
 };
 
-/* ════════════════════════════════════════
-   STATE  (mirrors Google Sheet)
-   ════════════════════════════════════════ */
-const state = {
-  hours: 0,
-  hoursTarget: 120,
-  qTarget: 170,
-  vTarget: 165,
-  history: []   // [ [isoTime, hours|'', quant|'', verbal|''], … ]
-};
+/* ═══════════════════════════════════════
+   GITHUB CONTENTS API
+   Full CORS support — works from any domain
+   ═══════════════════════════════════════ */
+const GH_API = 'https://api.github.com';
+let _sha = null;   // SHA of current data.json — required for writes
 
-/* ════════════════════════════════════════
-   CHART INSTANCES
-   ════════════════════════════════════════ */
+function ghHeaders() {
+  return {
+    Authorization: 'token ' + cfg.get().token,
+    Accept: 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json'
+  };
+}
+
+async function ghRead() {
+  const { owner, repo, branch = 'main' } = cfg.get();
+  const url = `${GH_API}/repos/${owner}/${repo}/contents/data.json?ref=${branch}&t=${Date.now()}`;
+  const res = await fetch(url, { headers: ghHeaders() });
+
+  if (res.status === 404) {
+    // data.json not in repo yet — use bundled defaults
+    _sha = null;
+    return defaultData();
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`GitHub ${res.status}: ${body.slice(0, 120)}`);
+  }
+  const file = await res.json();
+  _sha = file.sha;
+  // GitHub returns base64 with embedded newlines — strip them before decoding
+  return JSON.parse(atob(file.content.replace(/\n/g, '')));
+}
+
+async function ghWrite(data) {
+  const { owner, repo, branch = 'main' } = cfg.get();
+  const url  = `${GH_API}/repos/${owner}/${repo}/contents/data.json`;
+  const body = {
+    message: 'tracker update ' + new Date().toISOString().slice(0, 10),
+    content: btoa(JSON.stringify(data, null, 2)),
+    branch
+  };
+  if (_sha) body.sha = _sha;   // omit sha when creating the file for the first time
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: ghHeaders(),
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`GitHub ${res.status}: ${txt.slice(0, 120)}`);
+  }
+  const result = await res.json();
+  _sha = result.content.sha;   // update sha for the next write
+}
+
+function defaultData() {
+  return {
+    hours: 22, hoursTarget: 120, qTarget: 170, vTarget: 165,
+    history: [
+      ['2026-01-01T00:00:00.000Z', 22, '', ''],
+      ['2026-06-01T00:00:00.000Z', '', 162, 155]
+    ]
+  };
+}
+
+/* ═══════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════ */
+const state = { hours: 0, hoursTarget: 120, qTarget: 170, vTarget: 165, history: [] };
 const CH = {};
 
-/* ════════════════════════════════════════
-   UI HELPERS
-   ════════════════════════════════════════ */
-let _busy = false;
+/* ═══════════════════════════════════════
+   SYNC STATUS
+   ═══════════════════════════════════════ */
+function setSyncStatus(s, detail) {
+  document.getElementById('syncPill').className = 'sync-pill s-' + s;
+  document.getElementById('syncLabel').textContent = {
+    idle:    'Not connected',
+    loading: 'Loading…',
+    saving:  'Saving…',
+    synced:  'Synced ✓',
+    error:   detail || 'Error'
+  }[s] || s;
+}
 
+/* ═══════════════════════════════════════
+   LOAD
+   ═══════════════════════════════════════ */
+async function load() {
+  if (!cfg.valid()) { setSyncStatus('idle'); openSetup(); return; }
+  setSyncStatus('loading');
+  try {
+    const data = await ghRead();
+    applyData(data);
+    setSyncStatus('synced');
+  } catch (e) {
+    console.error('[GRE Tracker] load:', e);
+    // Surface the actual GitHub error so the user knows what's wrong
+    setSyncStatus('error', e.message.slice(0, 60));
+  }
+}
+
+/* ═══════════════════════════════════════
+   SAVE  (debounced — batches rapid taps)
+   ═══════════════════════════════════════ */
+let _saveTimer = null;
+function scheduleSave() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(doSave, 900);
+}
+
+async function doSave() {
+  if (!cfg.valid()) return;
+  setSyncStatus('saving');
+  const payload = {
+    hours:       state.hours,
+    hoursTarget: state.hoursTarget,
+    qTarget:     state.qTarget,
+    vTarget:     state.vTarget,
+    history:     state.history
+  };
+  try {
+    await ghWrite(payload);
+    setSyncStatus('synced');
+  } catch (e) {
+    console.error('[GRE Tracker] save:', e);
+    setSyncStatus('error', e.message.slice(0, 60));
+    // 409 = SHA conflict (another device wrote first) — reload to get fresh SHA
+    if (e.message.includes('409') || e.message.includes('422')) {
+      await load();
+    }
+  }
+}
+
+function applyData(data) {
+  if (data.hours       != null && data.hours       !== '') state.hours       = +data.hours       || 0;
+  if (data.hoursTarget != null && data.hoursTarget !== '') state.hoursTarget = +data.hoursTarget || 120;
+  if (data.qTarget     != null && data.qTarget     !== '') state.qTarget     = +data.qTarget     || 170;
+  if (data.vTarget     != null && data.vTarget     !== '') state.vTarget     = +data.vTarget     || 165;
+  if (Array.isArray(data.history)) state.history = data.history;
+  renderAll();
+}
+
+/* ═══════════════════════════════════════
+   ACTIONS
+   ═══════════════════════════════════════ */
+let _busy = false;
 function setBusy(b) {
   _busy = b;
   ['minusBtn','plusBtn','logQBtn','logVBtn'].forEach(id => {
@@ -491,108 +466,15 @@ function setBusy(b) {
   });
 }
 
-function setSyncStatus(status) {
-  const pill  = document.getElementById('syncPill');
-  const label = document.getElementById('syncLabel');
-  pill.className = 'sync-pill s-' + status;
-  label.textContent = {
-    idle:    'Not connected',
-    loading: 'Loading…',
-    saving:  'Saving…',
-    synced:  'Synced ✓',
-    error:   'Sync failed — check deployment settings'
-  }[status] || status;
-}
-
-/* ════════════════════════════════════════
-   API  — JSONP via <script> tag
-   Completely bypasses CORS / redirect
-   issues with Apps Script.
-   ════════════════════════════════════════ */
-
-// Injects a <script> tag pointing at the Apps Script URL with a
-// JSONP callback.  No fetch(), no CORS, no preflight — works from
-// any domain including GitHub Pages.
-function callApi(params, status) {
-  return new Promise(resolve => {
-    const base = cfg.url();
-    if (!base) { setSyncStatus('idle'); resolve(null); return; }
-    setSyncStatus(status || 'loading');
-
-    // Unique callback name on window so parallel calls don't collide
-    const cbName  = '__greTrackerCb' + Date.now();
-    const qs      = new URLSearchParams({ ...params, callback: cbName, _t: Date.now() });
-    const fullUrl = base + (base.includes('?') ? '&' : '?') + qs.toString();
-    const script  = document.createElement('script');
-
-    // Timeout guard — 15 s should be more than enough for Apps Script
-    const timer = setTimeout(() => {
-      cleanup();
-      setSyncStatus('error');
-      console.error('[GRE Tracker] timeout waiting for Apps Script');
-      resolve(null);
-    }, 15000);
-
-    function cleanup() {
-      clearTimeout(timer);
-      delete window[cbName];
-      if (script.parentNode) document.head.removeChild(script);
-    }
-
-    // Apps Script calls this once the script executes
-    window[cbName] = function(data) {
-      cleanup();
-      if (!data || data.error) {
-        console.error('[GRE Tracker] API error:', data && data.error);
-        setSyncStatus('error');
-        resolve(null);
-        return;
-      }
-      applyData(data);
-      setSyncStatus('synced');
-      resolve(data);
-    };
-
-    script.onerror = function() {
-      cleanup();
-      setSyncStatus('error');
-      console.error('[GRE Tracker] script load error — check your deployment URL');
-      resolve(null);
-    };
-
-    document.head.appendChild(script);
-    script.src = fullUrl;   // triggers the network request
-  });
-}
-
-function loadFromSheets() {
-  return callApi({}, 'loading');
-}
-
-function applyData(data) {
-  if (data.hours       !== undefined && data.hours       !== '') state.hours       = +data.hours       || 0;
-  if (data.hoursTarget !== undefined && data.hoursTarget !== '') state.hoursTarget = +data.hoursTarget || 120;
-  if (data.qTarget     !== undefined && data.qTarget     !== '') state.qTarget     = +data.qTarget     || 170;
-  if (data.vTarget     !== undefined && data.vTarget     !== '') state.vTarget     = +data.vTarget     || 165;
-  if (Array.isArray(data.history)) state.history = data.history;
-  renderAll();
-}
-
-/* ════════════════════════════════════════
-   ACTIONS
-   ════════════════════════════════════════ */
-async function adjustHours(delta) {
+function adjustHours(delta) {
   if (_busy) return;
-  setBusy(true);
-  // Optimistic local update for instant feel
   state.hours = Math.max(0, state.hours + delta);
+  state.history.push([new Date().toISOString(), state.hours, '', '']);
   renderAll();
-  // Single GET that writes AND returns new state — no POST needed
-  await callApi({ action: 'adjustHours', delta }, 'saving');
-  setBusy(false);
+  scheduleSave();
 }
 
-async function logScore(type) {
+function logScore(type) {
   if (_busy) return;
   const inputEl = document.getElementById(type + 'Input');
   const errorEl = document.getElementById(type + 'Error');
@@ -603,21 +485,16 @@ async function logScore(type) {
   }
   errorEl.textContent = '';
   inputEl.value = '';
-  setBusy(true);
-  // Optimistic local update
   state.history.push(type === 'q'
     ? [new Date().toISOString(), '', val, '']
     : [new Date().toISOString(), '', '', val]);
   renderAll();
-  // Single GET that appends to History and returns new state
-  await callApi({ action: 'logScore', type, value: val }, 'saving');
-  setBusy(false);
+  scheduleSave();
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════
    DATA HELPERS
-   ════════════════════════════════════════ */
-// Each filter function returns [{t: isoString, v: number}] sorted oldest→newest
+   ═══════════════════════════════════════ */
 function histHours() {
   return state.history
     .filter(r => r[1] !== '' && r[1] !== null && !isNaN(+r[1]))
@@ -636,33 +513,23 @@ function histV() {
     .map(r => ({ t: r[0], v: +r[3] }))
     .sort((a, b) => +new Date(a.t) - +new Date(b.t));
 }
-
 function fmtDate(iso) {
-  try {
-    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-  } catch { return '?'; }
+  try { return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); }
+  catch { return '?'; }
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════
    RENDER
-   ════════════════════════════════════════ */
-function renderAll() {
-  renderHours();
-  renderScore('q');
-  renderScore('v');
-}
+   ═══════════════════════════════════════ */
+function renderAll() { renderHours(); renderScore('q'); renderScore('v'); }
 
 function renderHours() {
-  const hist   = histHours();
-  const val    = state.hours;
-  const target = state.hoursTarget;
-  const pct    = target > 0 ? Math.min(100, (val / target) * 100) : 0;
-
-  document.getElementById('hoursDisplay').textContent = val;
+  const hist = histHours(), val = state.hours, target = state.hoursTarget;
+  const pct  = target > 0 ? Math.min(100, (val / target) * 100) : 0;
+  document.getElementById('hoursDisplay').textContent   = val;
   document.getElementById('hoursTargetLbl').textContent = target;
-  document.getElementById('hoursBar').style.width = pct + '%';
-  document.getElementById('hoursLbl').textContent = `${val} of ${target} hrs · ${pct.toFixed(0)}%`;
-
+  document.getElementById('hoursBar').style.width       = pct + '%';
+  document.getElementById('hoursLbl').textContent       = `${val} of ${target} hrs · ${pct.toFixed(0)}%`;
   drawChart('hours', hist, '#B8860B', target, 0, null);
 }
 
@@ -672,74 +539,40 @@ function renderScore(type) {
   const color  = type === 'q' ? '#2A6F77' : '#B5495B';
   const last   = hist.length ? hist[hist.length - 1].v : null;
   const pct    = last !== null ? Math.min(100, Math.max(0, ((last - 130) / (target - 130)) * 100)) : 0;
-
-  document.getElementById(type + 'Display').textContent  = last !== null ? last : '—';
+  document.getElementById(type + 'Display').textContent   = last !== null ? last : '—';
   document.getElementById(type + 'TargetLbl').textContent = target;
-  document.getElementById(type + 'Bar').style.width      = pct + '%';
-  document.getElementById(type + 'Lbl').textContent      = last !== null
+  document.getElementById(type + 'Bar').style.width       = pct + '%';
+  document.getElementById(type + 'Lbl').textContent       = last !== null
     ? `${last} of ${target} · ${pct.toFixed(0)}%`
     : `— of ${target}`;
-
   drawChart(type, hist, color, target, 130, 170);
 }
 
 function drawChart(key, hist, color, target, minY, maxY) {
   const canvas = document.getElementById(key + 'Chart');
   const empty  = document.getElementById(key + 'Empty');
-
   if (!hist.length) {
-    empty.style.display  = 'flex';
-    canvas.style.display = 'none';
+    empty.style.display = 'flex'; canvas.style.display = 'none';
     if (CH[key]) { CH[key].destroy(); CH[key] = null; }
     return;
   }
-
-  empty.style.display  = 'none';
-  canvas.style.display = 'block';
-
-  const labels     = hist.map(h => fmtDate(h.t));
-  const values     = hist.map(h => h.v);
-  const targetLine = hist.map(() => target);
-
+  empty.style.display = 'none'; canvas.style.display = 'block';
+  const labels = hist.map(h => fmtDate(h.t));
+  const values = hist.map(h => h.v);
+  const tline  = hist.map(() => target);
   const opts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => ctx.dataset.label === 'Target'
-            ? `Target: ${ctx.parsed.y}`
-            : `${ctx.dataset.label}: ${ctx.parsed.y}`
-        }
-      }
-    },
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          font: { size: 10, family: "'IBM Plex Mono', monospace" },
-          color: '#9CA3AF',
-          maxTicksLimit: 6
-        }
-      },
-      y: {
-        ...(minY !== null ? { min: minY } : {}),
-        ...(maxY !== null ? { max: maxY } : {}),
-        grid: { color: '#F0EDE5' },
-        ticks: {
-          font: { size: 10, family: "'IBM Plex Mono', monospace" },
-          color: '#9CA3AF',
-          maxTicksLimit: 5
-        }
-      }
+      x: { grid: { display: false }, ticks: { font: { size: 10, family:"'IBM Plex Mono',monospace" }, color:'#9CA3AF', maxTicksLimit:6 } },
+      y: { ...(minY !== null ? { min: minY } : {}), ...(maxY !== null ? { max: maxY } : {}),
+           grid: { color: '#F0EDE5' }, ticks: { font: { size:10, family:"'IBM Plex Mono',monospace" }, color:'#9CA3AF', maxTicksLimit:5 } }
     }
   };
-
   if (CH[key]) {
-    CH[key].data.labels            = labels;
-    CH[key].data.datasets[0].data  = values;
-    CH[key].data.datasets[1].data  = targetLine;
+    CH[key].data.labels = labels;
+    CH[key].data.datasets[0].data = values;
+    CH[key].data.datasets[1].data = tline;
     CH[key].update('none');
   } else {
     CH[key] = new Chart(canvas, {
@@ -747,26 +580,10 @@ function drawChart(key, hist, color, target, minY, maxY) {
       data: {
         labels,
         datasets: [
-          {
-            label: { hours: 'Hours', q: 'Quant', v: 'Verbal' }[key],
-            data:            values,
-            borderColor:     color,
-            backgroundColor: color + '18',
-            borderWidth:     2,
-            tension:         0.3,
-            pointRadius:     hist.length === 1 ? 5 : 3,
-            pointHoverRadius: 5,
-            fill:            true
-          },
-          {
-            label:       'Target',
-            data:         targetLine,
-            borderColor:  color,
-            borderDash:   [5, 4],
-            borderWidth:  1.5,
-            pointRadius:  0,
-            fill:         false
-          }
+          { label: {hours:'Hours',q:'Quant',v:'Verbal'}[key], data: values,
+            borderColor: color, backgroundColor: color+'18', borderWidth: 2,
+            tension: 0.3, pointRadius: hist.length===1?5:3, pointHoverRadius:5, fill:true },
+          { label:'Target', data:tline, borderColor:color, borderDash:[5,4], borderWidth:1.5, pointRadius:0, fill:false }
         ]
       },
       options: opts
@@ -774,11 +591,15 @@ function drawChart(key, hist, color, target, minY, maxY) {
   }
 }
 
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════
    MODAL
-   ════════════════════════════════════════ */
+   ═══════════════════════════════════════ */
 function openSetup() {
-  document.getElementById('scriptUrlInput').value = cfg.url();
+  const c = cfg.get();
+  document.getElementById('ownerInput').value  = c.owner  || '';
+  document.getElementById('repoInput').value   = c.repo   || '';
+  document.getElementById('branchInput').value = c.branch || 'main';
+  document.getElementById('tokenInput').value  = c.token  || '';
   document.getElementById('setupBackdrop').classList.add('open');
 }
 function closeSetup() {
@@ -790,42 +611,35 @@ document.getElementById('cancelSetupBtn').addEventListener('click', closeSetup);
 document.getElementById('setupBackdrop').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeSetup();
 });
-
 document.getElementById('saveSetupBtn').addEventListener('click', async () => {
-  const url = document.getElementById('scriptUrlInput').value.trim();
-  if (!url.startsWith('https://script.google.com')) {
-    alert('That doesn\'t look right — it should start with https://script.google.com');
-    return;
-  }
-  cfg.set({ scriptUrl: url });
+  const owner  = document.getElementById('ownerInput').value.trim();
+  const repo   = document.getElementById('repoInput').value.trim();
+  const branch = document.getElementById('branchInput').value.trim() || 'main';
+  const token  = document.getElementById('tokenInput').value.trim();
+  if (!owner || !repo || !token) { alert('Fill in username, repo name, and token.'); return; }
+  cfg.set({ owner, repo, branch, token });
   closeSetup();
-  await loadFromSheets();
+  await load();
 });
 
-/* ════════════════════════════════════════
-   EVENT LISTENERS
-   ════════════════════════════════════════ */
-document.getElementById('syncBtn').addEventListener('click', loadFromSheets);
+/* ═══════════════════════════════════════
+   EVENTS
+   ═══════════════════════════════════════ */
+document.getElementById('syncBtn').addEventListener('click', load);
 document.getElementById('plusBtn').addEventListener('click',  () => adjustHours(1));
 document.getElementById('minusBtn').addEventListener('click', () => adjustHours(-1));
-
 document.getElementById('logQBtn').addEventListener('click', () => logScore('q'));
 document.getElementById('logVBtn').addEventListener('click', () => logScore('v'));
+document.getElementById('qInput').addEventListener('keydown', e => { if (e.key==='Enter') logScore('q'); });
+document.getElementById('vInput').addEventListener('keydown', e => { if (e.key==='Enter') logScore('v'); });
 
-// Enter key in score inputs
-document.getElementById('qInput').addEventListener('keydown', e => { if (e.key === 'Enter') logScore('q'); });
-document.getElementById('vInput').addEventListener('keydown', e => { if (e.key === 'Enter') logScore('v'); });
-
-/* ════════════════════════════════════════
+/* ═══════════════════════════════════════
    INIT
-   ════════════════════════════════════════ */
-(async function init() {
-  renderAll();                 // show skeleton immediately
-  if (!cfg.url()) {
-    openSetup();               // first visit — prompt for URL
-    return;
-  }
-  await loadFromSheets();
+   ═══════════════════════════════════════ */
+(async function() {
+  renderAll();
+  if (!cfg.valid()) { openSetup(); return; }
+  await load();
 })();
 </script>
 </body>
