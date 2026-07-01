@@ -6,7 +6,7 @@
 <title>GRE Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --bg: #FAF8F3;
@@ -326,7 +326,7 @@ function ghHeaders() {
 async function ghRead() {
   const { owner, repo, branch = 'main' } = cfg.get();
   const url = `${GH_API}/repos/${owner}/${repo}/contents/data.json?ref=${branch}&t=${Date.now()}`;
-  const res = await fetch(url, { headers: ghHeaders() });
+  const res = await fetch(url, { headers: ghHeaders(), cache: 'no-store' });
 
   if (res.status === 404) {
     // data.json not in repo yet — use bundled defaults
@@ -344,6 +344,12 @@ async function ghRead() {
 }
 
 async function ghWrite(data) {
+  // If we never loaded on this device, _sha is null.
+  // GitHub requires the current SHA to update an existing file —
+  // fetch it first rather than blindly trying to create.
+  if (!_sha) {
+    try { await ghRead(); } catch (_) { /* file may not exist yet, proceed */ }
+  }
   const { owner, repo, branch = 'main' } = cfg.get();
   const url  = `${GH_API}/repos/${owner}/${repo}/contents/data.json`;
   const body = {
@@ -409,7 +415,8 @@ async function load() {
   } catch (e) {
     console.error('[GRE Tracker] load:', e);
     // Surface the actual GitHub error so the user knows what's wrong
-    setSyncStatus('error', e.message.slice(0, 60));
+    // Show the real error so the user knows what happened
+    setSyncStatus('error', e.message.slice(0, 55));
   }
 }
 
@@ -549,6 +556,11 @@ function renderScore(type) {
 }
 
 function drawChart(key, hist, color, target, minY, maxY) {
+  if (typeof Chart === 'undefined') {
+    // Chart.js hasn't finished loading — retry once it has
+    window.addEventListener('load', () => drawChart(key, hist, color, target, minY, maxY), { once: true });
+    return;
+  }
   const canvas = document.getElementById(key + 'Chart');
   const empty  = document.getElementById(key + 'Empty');
   if (!hist.length) {
