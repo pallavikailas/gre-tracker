@@ -500,75 +500,54 @@ function setSyncStatus(status) {
     loading: 'Loading…',
     saving:  'Saving…',
     synced:  'Synced ✓',
-    error:   'Sync failed'
+    error:   'Sync failed — check deployment settings'
   }[status] || status;
 }
 
 /* ════════════════════════════════════════
-   API
+   API  — ALL operations use GET to avoid
+   CORS preflight issues with Apps Script
    ════════════════════════════════════════ */
-async function loadFromSheets() {
-  const url = cfg.url();
-  if (!url) { setSyncStatus('idle'); return; }
-  setSyncStatus('loading');
+
+// Build a cache-busted URL with optional action params
+function apiUrl(params) {
+  const base = cfg.url();
+  if (!base) return null;
+  const qs = new URLSearchParams({ ...params, _t: Date.now() });
+  return base + (base.includes('?') ? '&' : '?') + qs.toString();
+}
+
+async function callApi(params, statusWhileBusy) {
+  const url = apiUrl(params);
+  if (!url) { setSyncStatus('idle'); return null; }
+  setSyncStatus(statusWhileBusy || 'loading');
   try {
-    // Cache-bust so mobile browsers don't serve stale responses
-    const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now());
+    const res = await fetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
+    if (data.error) throw new Error(data.error);
     applyData(data);
     setSyncStatus('synced');
+    return data;
   } catch (e) {
     setSyncStatus('error');
-    console.error('[GRE Tracker] load:', e);
+    console.error('[GRE Tracker]', params.action || 'load', e);
+    return null;
   }
+}
+
+function loadFromSheets() {
+  return callApi({}, 'loading');
 }
 
 function applyData(data) {
-  // Progress values
-  if (data.hours      !== undefined && data.hours      !== '') state.hours      = +data.hours      || 0;
+  if (data.hours       !== undefined && data.hours       !== '') state.hours       = +data.hours       || 0;
   if (data.hoursTarget !== undefined && data.hoursTarget !== '') state.hoursTarget = +data.hoursTarget || 120;
   if (data.qTarget     !== undefined && data.qTarget     !== '') state.qTarget     = +data.qTarget     || 170;
   if (data.vTarget     !== undefined && data.vTarget     !== '') state.vTarget     = +data.vTarget     || 165;
-
-  // History rows from the sheet (already header-stripped by doGet's slice(1))
   if (Array.isArray(data.history)) state.history = data.history;
-
   renderAll();
 }
-
-async function saveToSheets() {
-  const url = cfg.url();
-  if (!url) return;
-  setSyncStatus('saving');
-  const body = JSON.stringify({
-    hours:       state.hours,
-    hoursTarget: state.hoursTarget,
-    qTarget:     state.qTarget,
-    vTarget:     state.vTarget,
-    history:     state.history
-  });
-  try {
-    // no-cors avoids CORS preflight issues with Apps Script.
-    // Apps Script receives the body via e.postData.contents and processes it.
-    // The response is opaque, so we re-fetch immediately after to confirm.
-    await fetch(url, {
-      method:  'POST',
-      mode:    'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body
-    });
-    // Apps Script is synchronous — by the time the (opaque) response arrives,
-    // the sheet write is committed. Small buffer for infra propagation.
-    await wait(500);
-    await loadFromSheets();
-  } catch (e) {
-    setSyncStatus('error');
-    console.error('[GRE Tracker] save:', e);
-  }
-}
-
-const wait = ms => new Promise(r => setTimeout(r, ms));
 
 /* ════════════════════════════════════════
    ACTIONS
@@ -576,10 +555,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 async function adjustHours(delta) {
   if (_busy) return;
   setBusy(true);
+  // Optimistic local update for instant feel
   state.hours = Math.max(0, state.hours + delta);
-  state.history.push([new Date().toISOString(), state.hours, '', '']);
   renderAll();
-  await saveToSheets();
+  // Single GET that writes AND returns new state — no POST needed
+  await callApi({ action: 'adjustHours', delta }, 'saving');
   setBusy(false);
 }
 
@@ -595,12 +575,13 @@ async function logScore(type) {
   errorEl.textContent = '';
   inputEl.value = '';
   setBusy(true);
-  const now = new Date().toISOString();
+  // Optimistic local update
   state.history.push(type === 'q'
-    ? [now, '', val, '']
-    : [now, '', '', val]);
+    ? [new Date().toISOString(), '', val, '']
+    : [new Date().toISOString(), '', '', val]);
   renderAll();
-  await saveToSheets();
+  // Single GET that appends to History and returns new state
+  await callApi({ action: 'logScore', type, value: val }, 'saving');
   setBusy(false);
 }
 
