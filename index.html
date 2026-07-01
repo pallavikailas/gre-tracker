@@ -315,18 +315,20 @@ const cfg = {
 const GH_API = 'https://api.github.com';
 let _sha = null;   // SHA of current data.json — required for writes
 
-function ghHeaders() {
-  return {
-    Authorization: 'token ' + cfg.get().token,
-    Accept: 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json'
+function ghHeaders(includeContentType) {
+  const token = (cfg.get().token || '').trim();
+  const h = {
+    Authorization: 'token ' + token,
+    Accept: 'application/vnd.github.v3+json'
   };
+  if (includeContentType) h['Content-Type'] = 'application/json';
+  return h;
 }
 
 async function ghRead() {
   const { owner, repo, branch = 'main' } = cfg.get();
-  const url = `${GH_API}/repos/${owner}/${repo}/contents/data.json?ref=${branch}&t=${Date.now()}`;
-  const res = await fetch(url, { headers: ghHeaders(), cache: 'no-store' });
+  const url = `${GH_API}/repos/${owner}/${repo}/contents/data.json?ref=${branch}&t=${Date.now()}&r=${Math.random()}`;
+  const res = await fetch(url, { headers: ghHeaders() });
 
   if (res.status === 404) {
     // data.json not in repo yet — use bundled defaults
@@ -361,7 +363,7 @@ async function ghWrite(data) {
 
   const res = await fetch(url, {
     method: 'PUT',
-    headers: ghHeaders(),
+    headers: ghHeaders(true),
     body: JSON.stringify(body)
   });
   if (!res.ok) {
