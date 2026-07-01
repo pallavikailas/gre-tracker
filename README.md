@@ -22,7 +22,7 @@ Tracks three metrics toward fixed targets across any number of devices — with 
 |--------|--------|---------|
 | Study hours | 120 hrs | +1 / −1 tap |
 | GRE Quant | 170 | Log individual score |
-| GRE Verbal | 165 | Log individual score |
+| GRE Verbal | 170 | Log individual score |
 
 Every change writes to `data.json` in this repo via the GitHub Contents API and is immediately visible on any other device that opens the page.
 
@@ -177,7 +177,7 @@ Credentials live in `localStorage` on that device only. Repeat once per browser.
   "hours": 22,
   "hoursTarget": 120,
   "qTarget": 170,
-  "vTarget": 165,
+  "vTarget": 170,
   "history": [
     ["2026-01-01T00:00:00.000Z", 22,  "",  ""],
     ["2026-06-01T00:00:00.000Z", "", 162, 155]
@@ -197,4 +197,4 @@ The architecture is fully auditable: every data change is a commit, every commit
 
 ---
 
-*Built as a personal productivity tool during GRE prep. Targets: Quant 170 · Verbal 165 · 120 study hours. Pray for me yall*
+*Built as a personal productivity tool during GRE prep. Targets: Quant 170 · Verbal 170 · 120 study hours. Pray for me yall*
