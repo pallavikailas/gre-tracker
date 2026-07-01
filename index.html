@@ -6,7 +6,7 @@
 <title>GRE Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" id="chartjs-primary"></script>
 <style>
 :root {
   --bg: #FAF8F3;
@@ -316,7 +316,8 @@ const GH_API = 'https://api.github.com';
 let _sha = null;   // SHA of current data.json — required for writes
 
 function ghHeaders(includeContentType) {
-  const token = (cfg.get().token || '').trim();
+  // Strip any non-printable-ASCII chars — HTTP headers must be ISO-8859-1
+  const token = (cfg.get().token || '').replace(/[^\x21-\x7E]/g, '').trim();
   const h = {
     Authorization: 'token ' + token,
     Accept: 'application/vnd.github.v3+json'
@@ -629,7 +630,8 @@ document.getElementById('saveSetupBtn').addEventListener('click', async () => {
   const owner  = document.getElementById('ownerInput').value.trim();
   const repo   = document.getElementById('repoInput').value.trim();
   const branch = document.getElementById('branchInput').value.trim() || 'main';
-  const token  = document.getElementById('tokenInput').value.trim();
+  // Strip invisible Unicode chars that break HTTP headers (zero-width spaces, smart quotes, etc)
+  const token  = document.getElementById('tokenInput').value.replace(/[^\x21-\x7E]/g, '').trim();
   if (!owner || !repo || !token) { alert('Fill in username, repo name, and token.'); return; }
   cfg.set({ owner, repo, branch, token });
   closeSetup();
@@ -651,6 +653,16 @@ document.getElementById('vInput').addEventListener('keydown', e => { if (e.key==
    INIT
    ═══════════════════════════════════════ */
 (async function() {
+  // If the primary CDN script failed, load Chart.js from unpkg before rendering
+  if (typeof Chart === 'undefined') {
+    await new Promise((resolve) => {
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js';
+      s.onload  = resolve;
+      s.onerror = resolve;   // resolve even on failure so init continues
+      document.head.appendChild(s);
+    });
+  }
   renderAll();
   if (!cfg.valid()) { openSetup(); return; }
   await load();
