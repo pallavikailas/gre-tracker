@@ -243,10 +243,10 @@ h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
       <div class="card-label">GRE Verbal</div>
       <div class="stat-row">
         <div class="big-num" id="vDisplay">—</div>
-        <div class="big-denom">/ <span id="vTargetLbl">165</span></div>
+        <div class="big-denom">/ <span id="vTargetLbl">170</span></div>
       </div>
       <div class="progress-track"><div class="progress-fill" id="vBar"></div></div>
-      <div class="progress-lbl" id="vLbl">— of 165</div>
+      <div class="progress-lbl" id="vLbl">— of 170</div>
       <div class="score-row">
         <input class="score-input" id="vInput" type="number" min="130" max="170" step="1"
                placeholder="130 – 170" inputmode="numeric">
@@ -377,7 +377,7 @@ async function ghWrite(data) {
 
 function defaultData() {
   return {
-    hours: 22, hoursTarget: 120, qTarget: 170, vTarget: 165,
+    hours: 22, hoursTarget: 120, qTarget: 170, vTarget: 170,
     history: [
       ['2026-01-01T00:00:00.000Z', 22, '', ''],
       ['2026-06-01T00:00:00.000Z', '', 162, 155]
@@ -388,7 +388,7 @@ function defaultData() {
 /* ═══════════════════════════════════════
    STATE
    ═══════════════════════════════════════ */
-const state = { hours: 0, hoursTarget: 120, qTarget: 170, vTarget: 165, history: [] };
+const state = { hours: 0, hoursTarget: 120, qTarget: 170, vTarget: 170, history: [] };
 const CH = {};
 
 /* ═══════════════════════════════════════
@@ -459,7 +459,7 @@ function applyData(data) {
   if (data.hours       != null && data.hours       !== '') state.hours       = +data.hours       || 0;
   if (data.hoursTarget != null && data.hoursTarget !== '') state.hoursTarget = +data.hoursTarget || 120;
   if (data.qTarget     != null && data.qTarget     !== '') state.qTarget     = +data.qTarget     || 170;
-  if (data.vTarget     != null && data.vTarget     !== '') state.vTarget     = +data.vTarget     || 165;
+  if (data.vTarget     != null && data.vTarget     !== '') state.vTarget     = +data.vTarget     || 170;
   if (Array.isArray(data.history)) state.history = data.history;
   renderAll();
 }
