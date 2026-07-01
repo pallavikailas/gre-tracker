@@ -2,808 +2,821 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study & GRE Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>GRE Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght=500;700&family=IBM+Plex+Mono:wght=500;600&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #FAF8F3;
-    --panel: #FFFFFF;
-    --ink: #1F2933;
-    --muted: #6B7280;
-    --line: #E5E1D6;
-    --accent-hours: #B8860B;
-    --accent-q: #2A6F77;
-    --accent-v: #B5495B;
-    --radius: 14px;
-  }
+:root {
+  --bg: #FAF8F3;
+  --panel: #FFFFFF;
+  --ink: #1F2933;
+  --ink-soft: #374151;
+  --muted: #6B7280;
+  --line: #E5E1D6;
+  --radius: 14px;
+}
 
-  * { box-sizing: border-box; }
+* { box-sizing: border-box; }
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
 
-  .wrap {
-    max-width: 920px;
-    margin: 0 auto;
-    padding: 32px 20px 64px;
-  }
+h1, h2 { font-family: 'Space Grotesk', sans-serif; margin: 0; }
 
-  header {
-    margin-bottom: 28px;
-  }
+/* ── Topbar ── */
+.wrap { max-width: 960px; margin: 0 auto; padding: 28px 20px 60px; }
 
-  header h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 1.6rem;
-    margin: 0 0 4px;
-    letter-spacing: -0.01em;
-  }
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 12px;
+}
+.brand h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; }
+.brand p  { margin: 3px 0 0; color: var(--muted); font-size: 0.8rem; }
 
-  header p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.92rem;
-  }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
 
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-  }
+.sync-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  border-radius: 99px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 0.75rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.sync-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #9CA3AF;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.s-idle    .sync-dot { background: #9CA3AF; }
+.s-loading .sync-dot { background: #F59E0B; animation: blink 0.9s ease-in-out infinite; }
+.s-saving  .sync-dot { background: #3B82F6; animation: blink 0.7s ease-in-out infinite; }
+.s-synced  .sync-dot { background: #22C55E; }
+.s-error   .sync-dot { background: #EF4444; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.25;} }
 
-  @media (max-width: 720px) {
-    .grid { grid-template-columns: 1fr; }
-  }
+.icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.icon-btn:hover { border-color: #9CA3AF; }
 
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 20px 22px;
-  }
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 740px) {
+  .grid { grid-template-columns: 1fr; }
+  .topbar { flex-wrap: wrap; }
+}
 
-  .card h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    margin: 0 0 14px;
-  }
+/* ── Card ── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  .counter-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    margin-bottom: 6px;
-  }
+/* Per-card accent colours */
+.card-hours { --ac: #B8860B; --ac-bg: rgba(184,134,11,0.08); }
+.card-q     { --ac: #2A6F77; --ac-bg: rgba(42,111,119,0.08); }
+.card-v     { --ac: #B5495B; --ac-bg: rgba(181,73,91,0.08); }
 
-  .counter-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    border: 1.5px solid var(--accent-hours);
-    background: #fff;
-    color: var(--accent-hours);
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.08s ease, background 0.15s ease;
-  }
+.card-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
-  .counter-btn:hover { background: #FBF3DF; }
-  .counter-btn:active { transform: scale(0.93); }
+/* ── Stat row ── */
+.stat-row { display: flex; align-items: baseline; gap: 6px; }
+.big-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2.75rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ac);
+  letter-spacing: -0.02em;
+}
+.big-denom {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
 
-  .counter-value {
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 600;
-    font-size: 2.6rem;
-    min-width: 110px;
-    text-align: center;
-  }
+/* ── Progress ── */
+.progress-track {
+  height: 5px;
+  background: var(--line);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--ac);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+.progress-lbl {
+  font-size: 0.73rem;
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--muted);
+  margin-top: -4px;
+}
 
-  .counter-label {
-    text-align: center;
-    color: var(--muted);
-    font-size: 0.82rem;
-    margin-bottom: 14px;
-  }
+/* ── Hours counter ── */
+.counter-row { display: flex; gap: 8px; }
+.counter-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 10px;
+  border: 1.5px solid var(--ac);
+  background: var(--ac-bg);
+  color: var(--ac);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.12s;
+  touch-action: manipulation;
+}
+.counter-btn:hover  { background: var(--ac); color: #fff; }
+.counter-btn:active { transform: scale(0.95); }
+.counter-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .progress-track {
-    height: 7px;
-    border-radius: 4px;
-    background: var(--line);
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
+/* ── GRE score input ── */
+.score-row { display: flex; gap: 8px; }
+.score-input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line);
+  background: var(--bg);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.score-input:focus { outline: none; border-color: var(--ac); }
+.log-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: none;
+  background: var(--ac);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+.log-btn:hover { opacity: 0.85; }
+.log-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .progress-fill {
-    height: 100%;
-    width: 0%;
-    background: var(--accent-hours);
-    border-radius: 4px;
-    transition: width 0.2s ease;
-  }
+.error-msg {
+  margin: -4px 0 -4px;
+  font-size: 0.73rem;
+  color: #EF4444;
+  min-height: 1em;
+}
 
-  .target-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.78rem;
-    color: var(--muted);
-  }
+/* ── Chart ── */
+.chart-wrap {
+  position: relative;
+  height: 150px;
+  margin-top: 4px;
+}
+.chart-wrap canvas { width: 100%; height: 100%; }
+.chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
 
-  .target-edit {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
+/* ── Modal ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 28, 40, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal-backdrop.open { display: flex; }
 
-  .target-edit input,
-  .target-inline input {
-    width: 46px;
-    padding: 2px 4px;
-    border-radius: 4px;
-    border: 1px solid var(--line);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
-    text-align: center;
-    color: var(--ink);
-    background: #fff;
-  }
+.modal {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 26px;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal h2 { font-size: 1.1rem; }
+.modal p  { margin: 0; font-size: 0.83rem; color: var(--muted); line-height: 1.55; }
 
-  .target-inline {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.74rem;
-    color: var(--muted);
-    margin-top: 6px;
-  }
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.modal input[type="url"], .modal input[type="text"] {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1.5px solid var(--line);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--ink);
+  background: var(--bg);
+}
+.modal input:focus { outline: none; border-color: #6B7280; }
 
-  .field-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
+.hint-box {
+  background: #FFFBEB;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.77rem;
+  line-height: 1.65;
+  color: #78520A;
+}
+.hint-box code {
+  font-family: 'IBM Plex Mono', monospace;
+  background: rgba(184,134,11,0.15);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.8em;
+}
 
-  .field {
-    flex: 1;
-  }
-
-  .field label {
-    display: block;
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-
-  .field input {
-    width: 100%;
-    padding: 9px 10px;
-    border-radius: 8px;
-    border: 1.5px solid var(--line);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 1rem;
-    color: var(--ink);
-    background: #fff;
-  }
-
-  .field input:focus {
-    outline: none;
-    border-color: var(--accent-q);
-  }
-
-  .log-btn {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: none;
-    background: var(--ink);
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 4px;
-  }
-
-  .log-btn:hover { opacity: 0.9; }
-
-  .error {
-    color: var(--accent-v);
-    font-size: 0.8rem;
-    margin-top: 8px;
-    min-height: 1em;
-  }
-
-  .legend-dot {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    margin-right: 6px;
-  }
-
-  .legend-row {
-    display: flex;
-    gap: 16px;
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
-  .chart-card {
-    grid-column: 1 / -1;
-    margin-top: 18px;
-  }
-
-  .chart-block { margin-bottom: 26px; }
-  .chart-block:last-child { margin-bottom: 0; }
-
-  canvas { width:100%; height:260px; }
-
-  .empty-note {
-    color: var(--muted);
-    font-size: 0.85rem;
-    font-style: italic;
-  }
-
-  footer {
-    margin-top: 28px;
-    text-align: center;
-  }
-
-  .reset-link {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 0.78rem;
-    text-decoration: underline;
-    cursor: pointer;
-  }
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+.btn-ghost {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-decoration: underline;
+  font-family: inherit;
+}
+.btn-primary {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-primary:hover { opacity: 0.85; }
 </style>
 </head>
 <body>
-
 <div class="wrap">
-  <header>
-    <h1>Study &amp; GRE Tracker</h1>
-    <p>Tap +/- to log study hours · log GRE Quant and Verbal scores as you go. Data stays completely synced across your screens.</p>
-  </header>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Hours logged</h2>
-      <div class="counter-row">
-        <button class="counter-btn" id="minusBtn" aria-label="Subtract one hour">&minus;</button>
-        <div class="counter-value" id="hoursValue">0</div>
-        <button class="counter-btn" id="plusBtn" aria-label="Add one hour">&plus;</button>
-      </div>
-      <div class="counter-label">Total hours · each tap adds a point to the chart below</div>
-      <div class="progress-track"><div class="progress-fill" id="hoursProgressFill"></div></div>
-      <div class="target-row">
-        <span id="hoursProgressText">0 / 120 hrs</span>
-        <span class="target-edit">Target <input type="number" id="hoursTargetInput" min="1" step="1" value="120"> hrs</span>
-      </div>
+  <div class="topbar">
+    <div class="brand">
+      <h1>GRE Tracker</h1>
+      <p>Study hours · Quant · Verbal — synced to Google Sheets</p>
     </div>
-
-    <div class="card">
-      <h2>Log a GRE score</h2>
-      <div class="field-row">
-        <div class="field">
-          <label for="qInput">Quant (130&ndash;170)</label>
-          <input type="number" id="qInput" min="130" max="170" step="1" placeholder="e.g. 162">
-          <div class="target-inline">Target <input type="number" id="qTargetInput" min="130" max="170" step="1" value="170"></div>
-        </div>
-        <div class="field">
-          <label for="vInput">Verbal (130&ndash;170)</label>
-          <input type="number" id="vInput" min="130" max="170" step="1" placeholder="e.g. 155">
-          <div class="target-inline">Target <input type="number" id="vTargetInput" min="130" max="170" step="1" value="165"></div>
-        </div>
+    <div class="topbar-right">
+      <div class="sync-pill s-idle" id="syncPill">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncLabel">Not connected</span>
       </div>
-      <button class="log-btn" id="logGreBtn">Log score</button>
-      <div class="error" id="greError"></div>
-      <div class="legend-row">
-        <span><span class="legend-dot" style="background:var(--accent-q)"></span>Quant</span>
-        <span><span class="legend-dot" style="background:var(--accent-v)"></span>Verbal</span>
-      </div>
-    </div>
-
-    <div class="card chart-card">
-      <div class="chart-block">
-        <h2>Hours over time</h2>
-        <div id="hoursEmpty" class="empty-note">No hours logged yet &mdash; tap + above to start.</div>
-        <canvas id="hoursChart"></canvas>
-      </div>
-      <div class="chart-block">
-        <h2>GRE scores over time</h2>
-        <div id="greEmpty" class="empty-note">No scores logged yet.</div>
-        <canvas id="greChart"></canvas>
-      </div>
+      <button class="icon-btn" id="syncBtn" title="Sync now">↻</button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
     </div>
   </div>
 
-  <footer>
-    <button class="reset-link" id="resetBtn">Clear all saved data</button>
-  </footer>
+  <div class="grid">
+
+    <!-- ── HOURS ── -->
+    <div class="card card-hours">
+      <div class="card-label">Hours logged</div>
+      <div class="stat-row">
+        <div class="big-num" id="hoursDisplay">—</div>
+        <div class="big-denom">/ <span id="hoursTargetLbl">120</span></div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="hoursBar"></div>
+      </div>
+      <div class="progress-lbl" id="hoursLbl">— of 120 hrs</div>
+      <div class="counter-row">
+        <button class="counter-btn" id="minusBtn" aria-label="Subtract 1 hour">−</button>
+        <button class="counter-btn" id="plusBtn"  aria-label="Add 1 hour">+</button>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="hoursChart"></canvas>
+        <div class="chart-empty" id="hoursEmpty">Log hours to see your chart</div>
+      </div>
+    </div>
+
+    <!-- ── GRE QUANT ── -->
+    <div class="card card-q">
+      <div class="card-label">GRE Quant</div>
+      <div class="stat-row">
+        <div class="big-num" id="qDisplay">—</div>
+        <div class="big-denom">/ <span id="qTargetLbl">170</span></div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="qBar"></div>
+      </div>
+      <div class="progress-lbl" id="qLbl">— of 170</div>
+      <div class="score-row">
+        <input class="score-input" id="qInput" type="number" min="130" max="170" step="1"
+               placeholder="130 – 170" inputmode="numeric">
+        <button class="log-btn" id="logQBtn">Log Q</button>
+      </div>
+      <div class="error-msg" id="qError"></div>
+      <div class="chart-wrap">
+        <canvas id="qChart"></canvas>
+        <div class="chart-empty" id="qEmpty">Log a Quant score to see your chart</div>
+      </div>
+    </div>
+
+    <!-- ── GRE VERBAL ── -->
+    <div class="card card-v">
+      <div class="card-label">GRE Verbal</div>
+      <div class="stat-row">
+        <div class="big-num" id="vDisplay">—</div>
+        <div class="big-denom">/ <span id="vTargetLbl">165</span></div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="vBar"></div>
+      </div>
+      <div class="progress-lbl" id="vLbl">— of 165</div>
+      <div class="score-row">
+        <input class="score-input" id="vInput" type="number" min="130" max="170" step="1"
+               placeholder="130 – 170" inputmode="numeric">
+        <button class="log-btn" id="logVBtn">Log V</button>
+      </div>
+      <div class="error-msg" id="vError"></div>
+      <div class="chart-wrap">
+        <canvas id="vChart"></canvas>
+        <div class="chart-empty" id="vEmpty">Log a Verbal score to see your chart</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SETTINGS MODAL ── -->
+<div class="modal-backdrop" id="setupBackdrop">
+  <div class="modal">
+    <h2>Connect to Google Sheets</h2>
+    <p>
+      Paste your Apps Script Web App URL below. It's saved only in this browser's
+      <code style="font-family:'IBM Plex Mono',monospace;font-size:0.9em">localStorage</code>
+      — never sent anywhere except directly to your Google Sheet.
+    </p>
+    <label>
+      Apps Script Web App URL
+      <input type="url" id="scriptUrlInput"
+             placeholder="https://script.google.com/macros/s/…/exec">
+    </label>
+    <div class="hint-box">
+      <strong>Where to find this URL:</strong><br>
+      In your Apps Script editor → <code>Deploy</code> → <code>Manage deployments</code>
+      → copy the <code>Web app URL</code>.<br><br>
+      Make sure it's deployed with:<br>
+      • <em>Execute as:</em> <code>Me</code><br>
+      • <em>Who has access:</em> <code>Anyone</code>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelSetupBtn">Cancel</button>
+      <button class="btn-primary" id="saveSetupBtn">Save &amp; Connect</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  // ---------- storage configuration ----------
-  const API_URL = "https://script.google.com/macros/s/AKfycbwD1MzUId97tads32NHhGnw4fABL-gmdYs3yCfpgxcg7GCD6mkl4NrfoJx_uXwtqnM/exec";
-  
-  async function loadFromSheets() {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error(`Sheet fetch failed: ${res.status}`);
-    return await res.json();
+'use strict';
+
+/* ════════════════════════════════════════
+   CONFIG  (localStorage)
+   ════════════════════════════════════════ */
+const CFG = 'gre_tracker_v1';
+const cfg = {
+  get() { try { return JSON.parse(localStorage.getItem(CFG) || '{}'); } catch { return {}; } },
+  set(patch) { localStorage.setItem(CFG, JSON.stringify({ ...this.get(), ...patch })); },
+  url() { return this.get().scriptUrl || ''; }
+};
+
+/* ════════════════════════════════════════
+   STATE  (mirrors Google Sheet)
+   ════════════════════════════════════════ */
+const state = {
+  hours: 0,
+  hoursTarget: 120,
+  qTarget: 170,
+  vTarget: 165,
+  history: []   // [ [isoTime, hours|'', quant|'', verbal|''], … ]
+};
+
+/* ════════════════════════════════════════
+   CHART INSTANCES
+   ════════════════════════════════════════ */
+const CH = {};
+
+/* ════════════════════════════════════════
+   UI HELPERS
+   ════════════════════════════════════════ */
+let _busy = false;
+
+function setBusy(b) {
+  _busy = b;
+  ['minusBtn','plusBtn','logQBtn','logVBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = b;
+  });
+}
+
+function setSyncStatus(status) {
+  const pill  = document.getElementById('syncPill');
+  const label = document.getElementById('syncLabel');
+  pill.className = 'sync-pill s-' + status;
+  label.textContent = {
+    idle:    'Not connected',
+    loading: 'Loading…',
+    saving:  'Saving…',
+    synced:  'Synced ✓',
+    error:   'Sync failed'
+  }[status] || status;
+}
+
+/* ════════════════════════════════════════
+   API
+   ════════════════════════════════════════ */
+async function loadFromSheets() {
+  const url = cfg.url();
+  if (!url) { setSyncStatus('idle'); return; }
+  setSyncStatus('loading');
+  try {
+    // Cache-bust so mobile browsers don't serve stale responses
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    applyData(data);
+    setSyncStatus('synced');
+  } catch (e) {
+    setSyncStatus('error');
+    console.error('[GRE Tracker] load:', e);
+  }
+}
+
+function applyData(data) {
+  // Progress values
+  if (data.hours      !== undefined && data.hours      !== '') state.hours      = +data.hours      || 0;
+  if (data.hoursTarget !== undefined && data.hoursTarget !== '') state.hoursTarget = +data.hoursTarget || 120;
+  if (data.qTarget     !== undefined && data.qTarget     !== '') state.qTarget     = +data.qTarget     || 170;
+  if (data.vTarget     !== undefined && data.vTarget     !== '') state.vTarget     = +data.vTarget     || 165;
+
+  // History rows from the sheet (already header-stripped by doGet's slice(1))
+  if (Array.isArray(data.history)) state.history = data.history;
+
+  renderAll();
+}
+
+async function saveToSheets() {
+  const url = cfg.url();
+  if (!url) return;
+  setSyncStatus('saving');
+  const body = JSON.stringify({
+    hours:       state.hours,
+    hoursTarget: state.hoursTarget,
+    qTarget:     state.qTarget,
+    vTarget:     state.vTarget,
+    history:     state.history
+  });
+  try {
+    // no-cors avoids CORS preflight issues with Apps Script.
+    // Apps Script receives the body via e.postData.contents and processes it.
+    // The response is opaque, so we re-fetch immediately after to confirm.
+    await fetch(url, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body
+    });
+    // Apps Script is synchronous — by the time the (opaque) response arrives,
+    // the sheet write is committed. Small buffer for infra propagation.
+    await wait(500);
+    await loadFromSheets();
+  } catch (e) {
+    setSyncStatus('error');
+    console.error('[GRE Tracker] save:', e);
+  }
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+/* ════════════════════════════════════════
+   ACTIONS
+   ════════════════════════════════════════ */
+async function adjustHours(delta) {
+  if (_busy) return;
+  setBusy(true);
+  state.hours = Math.max(0, state.hours + delta);
+  state.history.push([new Date().toISOString(), state.hours, '', '']);
+  renderAll();
+  await saveToSheets();
+  setBusy(false);
+}
+
+async function logScore(type) {
+  if (_busy) return;
+  const inputEl = document.getElementById(type + 'Input');
+  const errorEl = document.getElementById(type + 'Error');
+  const val = parseInt(inputEl.value, 10);
+  if (isNaN(val) || val < 130 || val > 170) {
+    errorEl.textContent = 'Enter a score between 130 and 170.';
+    return;
+  }
+  errorEl.textContent = '';
+  inputEl.value = '';
+  setBusy(true);
+  const now = new Date().toISOString();
+  state.history.push(type === 'q'
+    ? [now, '', val, '']
+    : [now, '', '', val]);
+  renderAll();
+  await saveToSheets();
+  setBusy(false);
+}
+
+/* ════════════════════════════════════════
+   DATA HELPERS
+   ════════════════════════════════════════ */
+// Each filter function returns [{t: isoString, v: number}] sorted oldest→newest
+function histHours() {
+  return state.history
+    .filter(r => r[1] !== '' && r[1] !== null && !isNaN(+r[1]))
+    .map(r => ({ t: r[0], v: +r[1] }))
+    .sort((a, b) => +new Date(a.t) - +new Date(b.t));
+}
+function histQ() {
+  return state.history
+    .filter(r => r[2] !== '' && r[2] !== null && !isNaN(+r[2]))
+    .map(r => ({ t: r[0], v: +r[2] }))
+    .sort((a, b) => +new Date(a.t) - +new Date(b.t));
+}
+function histV() {
+  return state.history
+    .filter(r => r[3] !== '' && r[3] !== null && !isNaN(+r[3]))
+    .map(r => ({ t: r[0], v: +r[3] }))
+    .sort((a, b) => +new Date(a.t) - +new Date(b.t));
+}
+
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  } catch { return '?'; }
+}
+
+/* ════════════════════════════════════════
+   RENDER
+   ════════════════════════════════════════ */
+function renderAll() {
+  renderHours();
+  renderScore('q');
+  renderScore('v');
+}
+
+function renderHours() {
+  const hist   = histHours();
+  const val    = state.hours;
+  const target = state.hoursTarget;
+  const pct    = target > 0 ? Math.min(100, (val / target) * 100) : 0;
+
+  document.getElementById('hoursDisplay').textContent = val;
+  document.getElementById('hoursTargetLbl').textContent = target;
+  document.getElementById('hoursBar').style.width = pct + '%';
+  document.getElementById('hoursLbl').textContent = `${val} of ${target} hrs · ${pct.toFixed(0)}%`;
+
+  drawChart('hours', hist, '#B8860B', target, 0, null);
+}
+
+function renderScore(type) {
+  const hist   = type === 'q' ? histQ() : histV();
+  const target = type === 'q' ? state.qTarget : state.vTarget;
+  const color  = type === 'q' ? '#2A6F77' : '#B5495B';
+  const last   = hist.length ? hist[hist.length - 1].v : null;
+  const pct    = last !== null ? Math.min(100, Math.max(0, ((last - 130) / (target - 130)) * 100)) : 0;
+
+  document.getElementById(type + 'Display').textContent  = last !== null ? last : '—';
+  document.getElementById(type + 'TargetLbl').textContent = target;
+  document.getElementById(type + 'Bar').style.width      = pct + '%';
+  document.getElementById(type + 'Lbl').textContent      = last !== null
+    ? `${last} of ${target} · ${pct.toFixed(0)}%`
+    : `— of ${target}`;
+
+  drawChart(type, hist, color, target, 130, 170);
+}
+
+function drawChart(key, hist, color, target, minY, maxY) {
+  const canvas = document.getElementById(key + 'Chart');
+  const empty  = document.getElementById(key + 'Empty');
+
+  if (!hist.length) {
+    empty.style.display  = 'flex';
+    canvas.style.display = 'none';
+    if (CH[key]) { CH[key].destroy(); CH[key] = null; }
+    return;
   }
 
-  function buildSheetHistory() {
-    const history = [];
-    hoursHistory.forEach((h) => {
-      history.push([new Date(h.t).toISOString(), h.v, "", ""]);
-    });
-    greHistory.forEach((g) => {
-      history.push([new Date(g.t).toISOString(), "", g.q, g.v]);
-    });
-    history.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-    return history;
-  }
+  empty.style.display  = 'none';
+  canvas.style.display = 'block';
 
-  async function saveToSheets() {
-    const payload = {
-      hours,
-      hoursTarget,
-      qTarget,
-      vTarget,
-      history: buildSheetHistory()
-    };
+  const labels     = hist.map(h => fmtDate(h.t));
+  const values     = hist.map(h => h.v);
+  const targetLine = hist.map(() => target);
 
-    try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        redirect: "manual",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
-      // Apps Script returns 302; following it would drop the POST body
-      if (res.type !== "opaqueredirect" && !res.ok && res.status !== 0) {
-        console.warn("Sheet save failed:", res.status, await res.text());
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.dataset.label === 'Target'
+            ? `Target: ${ctx.parsed.y}`
+            : `${ctx.dataset.label}: ${ctx.parsed.y}`
+        }
       }
-    } catch (e) {
-      console.warn("Sheet save error:", e);
-    }
-  }
-  
-  const STORE_HOURS = 'tracker_hours_value';
-  const STORE_HOURS_HISTORY = 'tracker_hours_history';
-  const STORE_GRE_HISTORY = 'tracker_gre_history';
-  const STORE_LAST_Q = 'tracker_last_q';
-  const STORE_LAST_V = 'tracker_last_v';
-  const STORE_HOURS_TARGET = 'tracker_hours_target';
-  const STORE_Q_TARGET = 'tracker_q_target';
-  const STORE_V_TARGET = 'tracker_v_target';
-
-  const load = (key, fallback) => {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw === null ? fallback : JSON.parse(raw);
-    } catch (e) {
-      return fallback;
-    }
-  };
-  const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
-
-  // Initialize from LocalStorage state instantly
-  let hours = load(STORE_HOURS, 0);
-  let hoursHistory = load(STORE_HOURS_HISTORY, []); 
-  let greHistory = load(STORE_GRE_HISTORY, []);      
-  let hoursTarget = load(STORE_HOURS_TARGET, 120);
-  let qTarget = load(STORE_Q_TARGET, 170);
-  let vTarget = load(STORE_V_TARGET, 165);
-
-  // ---------- helper elements ----------
-  const fmtLabel = (ts) => {
-    const d = new Date(ts);
-    if (isNaN(d.getTime())) return "Logged Entry";
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getMonth() + 1}/${d.getDate()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
-
-  // ---------- charts instance handling ----------
-  let hoursChart, greChart;
-
-  function renderHoursChart() {
-    const empty = document.getElementById('hoursEmpty');
-    const canvas = document.getElementById('hoursChart');
-    if (!hoursHistory || hoursHistory.length === 0) {
-      empty.style.display = 'block';
-      canvas.style.display = 'none';
-      return;
-    }
-    empty.style.display = 'none';
-    canvas.style.display = 'block';
-
-    const labels = hoursHistory.map(e => fmtLabel(e.t));
-    const data = hoursHistory.map(e => e.v);
-    const targetData = labels.map(() => hoursTarget);
-
-    if (!hoursChart) {
-      hoursChart = new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Hours',
-              data,
-              borderColor: '#B8860B',
-              backgroundColor: 'rgba(184,134,11,0.08)',
-              tension: 0.25,
-              fill: true,
-              pointRadius: 3,
-              pointBackgroundColor: '#B8860B'
-            },
-            {
-              label: 'Target',
-              data: targetData,
-              borderColor: '#C9A227',
-              borderDash: [6, 4],
-              borderWidth: 1.5,
-              pointRadius: 0,
-              fill: false,
-              tension: 0
-            }
-          ]
-        },
-        options: chartOptions(false, 0, undefined, hoursTarget, false)
-      });
-    } else {
-      hoursChart.data.labels = labels;
-      hoursChart.data.datasets[0].data = data;
-      hoursChart.data.datasets[1].data = targetData;
-      hoursChart.options.scales.y.suggestedMax = hoursTarget;
-      hoursChart.update();
-    }
-  }
-
-  function renderGreChart() {
-    const empty = document.getElementById('greEmpty');
-    const canvas = document.getElementById('greChart');
-    if (!greHistory || greHistory.length === 0) {
-      empty.style.display = 'block';
-      canvas.style.display = 'none';
-      return;
-    }
-    empty.style.display = 'none';
-    canvas.style.display = 'block';
-
-    const labels = greHistory.map(e => fmtLabel(e.t));
-    const qData = greHistory.map(e => e.q);
-    const vData = greHistory.map(e => e.v);
-    const qTargetData = labels.map(() => qTarget);
-    const vTargetData = labels.map(() => vTarget);
-
-    if (!greChart) {
-      greChart = new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Quant',
-              data: qData,
-              borderColor: '#2A6F77',
-              backgroundColor: 'rgba(42,111,119,0.08)',
-              tension: 0.25,
-              pointRadius: 3,
-              pointBackgroundColor: '#2A6F77'
-            },
-            {
-              label: 'Verbal',
-              data: vData,
-              borderColor: '#B5495B',
-              backgroundColor: 'rgba(181,73,91,0.08)',
-              tension: 0.25,
-              pointRadius: 3,
-              pointBackgroundColor: '#B5495B'
-            },
-            {
-              label: 'Quant target',
-              data: qTargetData,
-              borderColor: '#2A6F77',
-              borderDash: [6, 4],
-              borderWidth: 1.5,
-              pointRadius: 0,
-              fill: false,
-              tension: 0
-            },
-            {
-              label: 'Verbal target',
-              data: vTargetData,
-              borderColor: '#B5495B',
-              borderDash: [6, 4],
-              borderWidth: 1.5,
-              pointRadius: 0,
-              fill: false,
-              tension: 0
-            }
-          ]
-        },
-        options: chartOptions(true, 130, 170, undefined, true)
-      });
-    } else {
-      greChart.data.labels = labels;
-      greChart.data.datasets[0].data = qData;
-      greChart.data.datasets[1].data = vData;
-      greChart.data.datasets[2].data = qTargetData;
-      greChart.data.datasets[3].data = vTargetData;
-      greChart.update();
-    }
-  }
-
-  function chartOptions(showLegend, min, max, suggestedMax, filterTargets) {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: showLegend,
-          labels: {
-            boxWidth: 10,
-            font: { size: 11 },
-            filter: filterTargets ? (item) => !/target/i.test(item.text) : undefined
-          }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { size: 10, family: "'IBM Plex Mono', monospace" },
+          color: '#9CA3AF',
+          maxTicksLimit: 6
         }
       },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#6B7280' } },
-        y: {
-          min: min, max: max, suggestedMax: suggestedMax,
-          grid: { color: '#EFEBE0' },
-          ticks: { font: { size: 10 }, color: '#6B7280' }
+      y: {
+        ...(minY !== null ? { min: minY } : {}),
+        ...(maxY !== null ? { max: maxY } : {}),
+        grid: { color: '#F0EDE5' },
+        ticks: {
+          font: { size: 10, family: "'IBM Plex Mono', monospace" },
+          color: '#9CA3AF',
+          maxTicksLimit: 5
         }
       }
-    };
-  }
-
-  // ---------- Hours Interfacing ----------
-  const hoursValueEl = document.getElementById('hoursValue');
-  const hoursProgressFill = document.getElementById('hoursProgressFill');
-  const hoursProgressText = document.getElementById('hoursProgressText');
-  const hoursTargetInput = document.getElementById('hoursTargetInput');
-
-  function renderHoursValue() {
-    hoursValueEl.textContent = hours;
-  }
-
-  function renderHoursProgress() {
-    const pct = hoursTarget > 0 ? Math.min(100, (hours / hoursTarget) * 100) : 0;
-    hoursProgressFill.style.width = pct + '%';
-    hoursProgressText.textContent = `${hours} / ${hoursTarget} hrs`;
-  }
-
-  async function adjustHours(delta) {
-    hours = Math.max(0, hours + delta);
-    save(STORE_HOURS, hours);
-    hoursHistory.push({ t: Date.now(), v: hours });
-    save(STORE_HOURS_HISTORY, hoursHistory);
-    
-    renderHoursValue();
-    renderHoursProgress();
-    renderHoursChart();
-    
-    await saveToSheets();
-  }
-
-  document.getElementById('plusBtn').addEventListener('click', () => adjustHours(1));
-  document.getElementById('minusBtn').addEventListener('click', () => adjustHours(-1));
-
-  hoursTargetInput.value = hoursTarget;
-  hoursTargetInput.addEventListener('change', async () => {
-    const val = Number(hoursTargetInput.value);
-    if (!val || val <= 0) { hoursTargetInput.value = hoursTarget; return; }
-    hoursTarget = val;
-    save(STORE_HOURS_TARGET, hoursTarget);
-    renderHoursProgress();
-    renderHoursChart();
-    await saveToSheets();
-  });
-
-  // ---------- GRE Interfacing ----------
-  const qInput = document.getElementById('qInput');
-  const vInput = document.getElementById('vInput');
-  const greError = document.getElementById('greError');
-  const qTargetInput = document.getElementById('qTargetInput');
-  const vTargetInput = document.getElementById('vTargetInput');
-
-  qInput.value = load(STORE_LAST_Q, '');
-  vInput.value = load(STORE_LAST_V, '');
-  qTargetInput.value = qTarget;
-  vTargetInput.value = vTarget;
-
-  qTargetInput.addEventListener('change', async () => {
-    const val = Number(qTargetInput.value);
-    if (!val || val < 130 || val > 170) { qTargetInput.value = qTarget; return; }
-    qTarget = val;
-    save(STORE_Q_TARGET, qTarget);
-    renderGreChart();
-    await saveToSheets();
-  });
-
-  vTargetInput.addEventListener('change', async () => {
-    const val = Number(vTargetInput.value);
-    if (!val || val < 130 || val > 170) { vTargetInput.value = vTarget; return; }
-    vTarget = val;
-    save(STORE_V_TARGET, vTarget);
-    renderGreChart();
-    await saveToSheets();
-  });
-
-  async function logGre() {
-    const q = Number(qInput.value);
-    const v = Number(vInput.value);
-    greError.textContent = '';
-
-    if (!qInput.value || !vInput.value) {
-      greError.textContent = 'Enter both a Quant and a Verbal score.';
-      return;
     }
-    if (q < 130 || q > 170 || v < 130 || v > 170) {
-      greError.textContent = 'Scores must be between 130 and 170.';
-      return;
-    }
+  };
 
-    greHistory.push({ t: Date.now(), q, v });
-    save(STORE_GRE_HISTORY, greHistory);
-    save(STORE_LAST_Q, q);
-    save(STORE_LAST_V, v);
-    
-    renderGreChart();
-    await saveToSheets();
+  if (CH[key]) {
+    CH[key].data.labels            = labels;
+    CH[key].data.datasets[0].data  = values;
+    CH[key].data.datasets[1].data  = targetLine;
+    CH[key].update('none');
+  } else {
+    CH[key] = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: { hours: 'Hours', q: 'Quant', v: 'Verbal' }[key],
+            data:            values,
+            borderColor:     color,
+            backgroundColor: color + '18',
+            borderWidth:     2,
+            tension:         0.3,
+            pointRadius:     hist.length === 1 ? 5 : 3,
+            pointHoverRadius: 5,
+            fill:            true
+          },
+          {
+            label:       'Target',
+            data:         targetLine,
+            borderColor:  color,
+            borderDash:   [5, 4],
+            borderWidth:  1.5,
+            pointRadius:  0,
+            fill:         false
+          }
+        ]
+      },
+      options: opts
+    });
   }
+}
 
-  document.getElementById('logGreBtn').addEventListener('click', logGre);
+/* ════════════════════════════════════════
+   MODAL
+   ════════════════════════════════════════ */
+function openSetup() {
+  document.getElementById('scriptUrlInput').value = cfg.url();
+  document.getElementById('setupBackdrop').classList.add('open');
+}
+function closeSetup() {
+  document.getElementById('setupBackdrop').classList.remove('open');
+}
 
-  // ---------- clear local database ----------
-  document.getElementById('resetBtn').addEventListener('click', async () => {
-    if (!confirm('This clears hours, GRE history, and targets on all devices. Continue?')) return;
-    [STORE_HOURS, STORE_HOURS_HISTORY, STORE_GRE_HISTORY, STORE_LAST_Q, STORE_LAST_V,
-     STORE_HOURS_TARGET, STORE_Q_TARGET, STORE_V_TARGET].forEach(k => localStorage.removeItem(k));
-    hours = 0;
-    hoursHistory = [];
-    greHistory = [];
-    hoursTarget = 120;
-    qTarget = 170;
-    vTarget = 165;
-    qInput.value = '';
-    vInput.value = '';
-    hoursTargetInput.value = hoursTarget;
-    qTargetInput.value = qTarget;
-    vTargetInput.value = vTarget;
-    renderHoursValue();
-    renderHoursProgress();
-    if (hoursChart) { hoursChart.destroy(); hoursChart = null; }
-    if (greChart) { greChart.destroy(); greChart = null; }
-    renderHoursChart();
-    renderGreChart();
-    await saveToSheets();
-  });
+document.getElementById('settingsBtn').addEventListener('click', openSetup);
+document.getElementById('cancelSetupBtn').addEventListener('click', closeSetup);
+document.getElementById('setupBackdrop').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSetup();
+});
 
-  // ---------- core engine synchronization init ----------
-  (async function () {
-    // Stage 1: Render Local cache instantly so elements never drop back to 0 visually
-    renderHoursValue();
-    renderHoursProgress();
-    renderHoursChart();
-    renderGreChart();
+document.getElementById('saveSetupBtn').addEventListener('click', async () => {
+  const url = document.getElementById('scriptUrlInput').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    alert('That doesn\'t look right — it should start with https://script.google.com');
+    return;
+  }
+  cfg.set({ scriptUrl: url });
+  closeSetup();
+  await loadFromSheets();
+});
 
-    try {
-      // Stage 2: Attempt background fetch over network
-      const data = await loadFromSheets();
-      console.log(data);
-      if (!data) return;
+/* ════════════════════════════════════════
+   EVENT LISTENERS
+   ════════════════════════════════════════ */
+document.getElementById('syncBtn').addEventListener('click', loadFromSheets);
+document.getElementById('plusBtn').addEventListener('click',  () => adjustHours(1));
+document.getElementById('minusBtn').addEventListener('click', () => adjustHours(-1));
 
-      if (data.hours !== undefined && data.hours !== null && data.hours !== "") {
-        hours = Number(data.hours);
-        save(STORE_HOURS, hours);
-      }
-      if (data.hoursTarget !== undefined && data.hoursTarget !== "") {
-        hoursTarget = Number(data.hoursTarget);
-        save(STORE_HOURS_TARGET, hoursTarget);
-        hoursTargetInput.value = hoursTarget;
-      }
-      if (data.qTarget !== undefined && data.qTarget !== "") {
-        qTarget = Number(data.qTarget);
-        save(STORE_Q_TARGET, qTarget);
-        qTargetInput.value = qTarget;
-      }
-      if (data.vTarget !== undefined && data.vTarget !== "") {
-        vTarget = Number(data.vTarget);
-        save(STORE_V_TARGET, vTarget);
-        vTargetInput.value = vTarget;
-      }
-      
-      // Stage 3: Parse sheet rows safely despite formatting drops
-      if (Array.isArray(data.history)) {
-        const structuralHours = [];
-        const structuralGre = [];
+document.getElementById('logQBtn').addEventListener('click', () => logScore('q'));
+document.getElementById('logVBtn').addEventListener('click', () => logScore('v'));
 
-        data.history.forEach((r) => {
-          if (!r || r.length === 0) return;
-          
-          let entryTime = Date.now();
-          if (r[0]) {
-            const parsedTs = new Date(r[0]).getTime();
-            if (!isNaN(parsedTs)) entryTime = parsedTs;
-          }
+// Enter key in score inputs
+document.getElementById('qInput').addEventListener('keydown', e => { if (e.key === 'Enter') logScore('q'); });
+document.getElementById('vInput').addEventListener('keydown', e => { if (e.key === 'Enter') logScore('v'); });
 
-          // Safe row check for Column B (Hours Logged)
-          if (r[1] !== undefined && r[1] !== null && r[1] !== "" && !isNaN(r[1])) {
-            structuralHours.push({
-              t: entryTime,
-              v: Number(r[1])
-            });
-          }
-          
-          // Safe row check for Columns C & D (GRE metrics matching structural layout)
-          if (r[2] !== undefined && r[2] !== null && r[2] !== "" && !isNaN(r[2]) &&
-              r[3] !== undefined && r[3] !== null && r[3] !== "" && !isNaN(r[3])) {
-            structuralGre.push({
-              t: entryTime,
-              q: Number(r[2]),
-              v: Number(r[3])
-            });
-          }
-        });
-
-        // Sheet is source of truth — always apply history (including empty after reset elsewhere)
-        hoursHistory = structuralHours;
-        greHistory = structuralGre;
-        save(STORE_HOURS_HISTORY, hoursHistory);
-        save(STORE_GRE_HISTORY, greHistory);
-
-        if (hoursHistory.length > 0) {
-          hours = hoursHistory.at(-1).v;
-          save(STORE_HOURS, hours);
-        }
-        if (greHistory.length > 0) {
-          const finalScore = greHistory.at(-1);
-          qInput.value = finalScore.q;
-          vInput.value = finalScore.v;
-          save(STORE_LAST_Q, finalScore.q);
-          save(STORE_LAST_V, finalScore.v);
-        } else {
-          qInput.value = "";
-          vInput.value = "";
-          localStorage.removeItem(STORE_LAST_Q);
-          localStorage.removeItem(STORE_LAST_V);
-        }
-      }
-    } catch (e) {
-      console.warn("Sheet response parsing bypassed, remaining safely inside localized instance.");
-    }
-
-    // Stage 4: Re-render interface elements smoothly
-    renderHoursValue();
-    renderHoursProgress();
-    renderHoursChart();
-    renderGreChart();
-  })();
+/* ════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════ */
+(async function init() {
+  renderAll();                 // show skeleton immediately
+  if (!cfg.url()) {
+    openSetup();               // first visit — prompt for URL
+    return;
+  }
+  await loadFromSheets();
+})();
 </script>
-
 </body>
 </html>
