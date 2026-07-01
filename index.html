@@ -505,35 +505,64 @@ function setSyncStatus(status) {
 }
 
 /* ════════════════════════════════════════
-   API  — ALL operations use GET to avoid
-   CORS preflight issues with Apps Script
+   API  — JSONP via <script> tag
+   Completely bypasses CORS / redirect
+   issues with Apps Script.
    ════════════════════════════════════════ */
 
-// Build a cache-busted URL with optional action params
-function apiUrl(params) {
-  const base = cfg.url();
-  if (!base) return null;
-  const qs = new URLSearchParams({ ...params, _t: Date.now() });
-  return base + (base.includes('?') ? '&' : '?') + qs.toString();
-}
+// Injects a <script> tag pointing at the Apps Script URL with a
+// JSONP callback.  No fetch(), no CORS, no preflight — works from
+// any domain including GitHub Pages.
+function callApi(params, status) {
+  return new Promise(resolve => {
+    const base = cfg.url();
+    if (!base) { setSyncStatus('idle'); resolve(null); return; }
+    setSyncStatus(status || 'loading');
 
-async function callApi(params, statusWhileBusy) {
-  const url = apiUrl(params);
-  if (!url) { setSyncStatus('idle'); return null; }
-  setSyncStatus(statusWhileBusy || 'loading');
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    applyData(data);
-    setSyncStatus('synced');
-    return data;
-  } catch (e) {
-    setSyncStatus('error');
-    console.error('[GRE Tracker]', params.action || 'load', e);
-    return null;
-  }
+    // Unique callback name on window so parallel calls don't collide
+    const cbName  = '__greTrackerCb' + Date.now();
+    const qs      = new URLSearchParams({ ...params, callback: cbName, _t: Date.now() });
+    const fullUrl = base + (base.includes('?') ? '&' : '?') + qs.toString();
+    const script  = document.createElement('script');
+
+    // Timeout guard — 15 s should be more than enough for Apps Script
+    const timer = setTimeout(() => {
+      cleanup();
+      setSyncStatus('error');
+      console.error('[GRE Tracker] timeout waiting for Apps Script');
+      resolve(null);
+    }, 15000);
+
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+    }
+
+    // Apps Script calls this once the script executes
+    window[cbName] = function(data) {
+      cleanup();
+      if (!data || data.error) {
+        console.error('[GRE Tracker] API error:', data && data.error);
+        setSyncStatus('error');
+        resolve(null);
+        return;
+      }
+      applyData(data);
+      setSyncStatus('synced');
+      resolve(data);
+    };
+
+    script.onerror = function() {
+      cleanup();
+      setSyncStatus('error');
+      console.error('[GRE Tracker] script load error — check your deployment URL');
+      resolve(null);
+    };
+
+    document.head.appendChild(script);
+    script.src = fullUrl;   // triggers the network request
+  });
 }
 
 function loadFromSheets() {
